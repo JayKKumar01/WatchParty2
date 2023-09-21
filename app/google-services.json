@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "1013242146029",
+    "firebase_url": "https://watchparty-60b72-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "watchparty-60b72",
+    "storage_bucket": "watchparty-60b72.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1013242146029:android:a3034f19db529e60f2b0e4",
+        "android_client_info": {
+          "package_name": "com.github.jaykkumar01.testngpeerjs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKNF9HqELAZap6a3fE4hCCboFxlLhDSzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1013242146029:android:18ab10b4b7d0d56ff2b0e4",
+        "android_client_info": {
+          "package_name": "com.github.jaykkumar01.watchparty"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKNF9HqELAZap6a3fE4hCCboFxlLhDSzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

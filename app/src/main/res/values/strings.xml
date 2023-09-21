@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Watch Party</string>
+    <string name="room">room</string>
+    <string name="_06d">%06d</string>
+</resources>
