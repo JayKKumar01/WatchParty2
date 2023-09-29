@@ -5,10 +5,12 @@ import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Environment;
+import android.telecom.Call;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty.models.AudioPlayerModel;
+import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 
@@ -25,6 +27,7 @@ public class JavaScriptInterface implements Data{
     Context context;
 
     HashMap<String, AudioPlayerModel> playerMap = new HashMap<>();
+
     ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public JavaScriptInterface(Context context) {
@@ -80,7 +83,10 @@ public class JavaScriptInterface implements Data{
     @JavascriptInterface
     public void play(String id,byte[] bytes, int read, long millis,String name, String message) {
         if (message != null){
-            Toast.makeText(context, "Id: "+id+"\nname: "+name + "\nmessage: "+message, Toast.LENGTH_SHORT).show();
+            MessageModel messageModel = new MessageModel(id,message);
+            messageModel.setName(name);
+            CallService.listener.receiveMessage(messageModel);
+//            Toast.makeText(context, "Id: "+id+"\nname: "+name + "\nmessage: "+message, Toast.LENGTH_SHORT).show();
             return;
         }
 

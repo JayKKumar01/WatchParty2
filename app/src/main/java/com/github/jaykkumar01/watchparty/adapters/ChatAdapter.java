@@ -14,20 +14,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Reply;
-import com.github.jaykkumar01.watchparty.models.UserModel;
-
-import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Future;
 
-public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.UserViewHolder> {
+public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
 
     private List<MessageModel> chatList;
     Context context;
-    private static final Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
+    private Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
 
     public ChatAdapter(Context context,List<MessageModel> chatList) {
         this.context = context;
@@ -44,15 +40,19 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.UserViewHolder
 
     @NonNull
     @Override
-    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat, parent, false);
-        return new ChatAdapter.UserViewHolder(itemView);
+        return new ChatViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
         MessageModel message = chatList.get(position);
-        holder.imageView.setImageDrawable(null);
+        if (message.getImageModel() == null){
+            holder.imageView.setImageDrawable(null);
+            holder.imageView.setVisibility(View.GONE);
+        }
+
 
         String timePattern = "hh:mm a";
         if (android.text.format.DateFormat.is24HourFormat(context)){
@@ -103,11 +103,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.UserViewHolder
         return chatList.size();
     }
 
-    public static class UserViewHolder extends RecyclerView.ViewHolder {
+    public static class ChatViewHolder extends RecyclerView.ViewHolder {
         TextView message,time,date,replymsg,replyName,fullWidth;
         View replyLayout;
         ImageView imageView;
-        public UserViewHolder(@NonNull View itemView) {
+        public ChatViewHolder(@NonNull View itemView) {
             super(itemView);
             message = itemView.findViewById(R.id.item_msg);
             time = itemView.findViewById(R.id.item_time);

@@ -41,6 +41,7 @@ import com.github.jaykkumar01.watchparty.receivers.NotificationReceiver;
 import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
@@ -60,6 +61,8 @@ public class CallService extends Service implements Data {
     private boolean isRecording;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     JavaScriptInterface javascriptInterface;
+
+    List<MessageModel> messageModelList = new ArrayList<>();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -172,6 +175,12 @@ public class CallService extends Service implements Data {
                         callJavaScript("javascript:sendFile("+ str +")");
                     }
                 });
+            }
+
+            @Override
+            public void receiveMessage(MessageModel messageModel) {
+                messageModelList.add(messageModel);
+                PlayerActivity.listener.onReceiveMessage(messageModelList);
             }
         };
     }

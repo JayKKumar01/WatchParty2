@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.jaykkumar01.watchparty.adapters.ChatAdapter;
 import com.github.jaykkumar01.watchparty.adapters.UserAdapter;
+import com.github.jaykkumar01.watchparty.interfaces.PlayerActivityListener;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
@@ -32,6 +33,7 @@ import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class PlayerActivity extends AppCompatActivity {
     Room room;
@@ -43,6 +45,8 @@ public class PlayerActivity extends AppCompatActivity {
     private List<UserModel> userList = new ArrayList<>();
     private List<MessageModel> chatList = new ArrayList<>();
     private ChatAdapter chatAdapter;
+
+    public static PlayerActivityListener listener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +63,7 @@ public class PlayerActivity extends AppCompatActivity {
         if (room == null){
             return;
         }
+        setUpListener();
         codeTV = findViewById(R.id.roomCode);
         userNameTV = findViewById(R.id.userName);
         userListRV = findViewById(R.id.recyclerViewUsers);
@@ -73,12 +78,38 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
-    private void setupChatsRecycleView(RecyclerView chatListRV) {
-        chatListRV.setLayoutManager(new LinearLayoutManager(this));
+    private void setUpListener() {
+        listener = new PlayerActivityListener() {
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onReceiveMessage(List<MessageModel> list) {
+//                Toast.makeText(PlayerActivity.this, ""+list.size(), Toast.LENGTH_SHORT).show();
+                chatList = list;
+//                MessageModel messageModel = new MessageModel("id1","name1","message1");
+//                messageModel.setTimeMillis(System.currentTimeMillis());
+//                chatList.add(messageModel);
+                chatAdapter.setChatList(chatList);
+                chatAdapter.notifyDataSetChanged();
+                if (chatListRV.getScrollState() == RecyclerView.SCROLL_STATE_IDLE){
+                    scrollToTop(chatListRV);
+                }
+            }
+        };
+    }
+
+    private void setupChatsRecycleView(RecyclerView recyclerView) {
+
+        recyclerView.setNestedScrollingEnabled(false);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setStackFromEnd(true);
+        recyclerView.setLayoutManager(llm);
         chatAdapter = new ChatAdapter(this,chatList);
-        chatListRV.setAdapter(chatAdapter);
+        recyclerView.setAdapter(chatAdapter);
 
 
+    }
+    private void scrollToTop(RecyclerView recyclerView) {
+        recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount());
     }
 
     private void setupUsersRecycleView(RecyclerView userListRV) {
@@ -116,11 +147,6 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
-    private void startAgora() {
-        Intent serviceIntent = new Intent(this, CallService.class);
-        serviceIntent.putExtra(getString(R.string.room),room);
-        startService(serviceIntent);
-    }
 
 
     @Override

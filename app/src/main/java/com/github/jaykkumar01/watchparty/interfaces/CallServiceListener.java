@@ -12,4 +12,5 @@ public interface CallServiceListener {
     void onToogleDeafen();
 
     void sendMessage(MessageModel messageModel);
+    void receiveMessage(MessageModel messageModel);
 }
