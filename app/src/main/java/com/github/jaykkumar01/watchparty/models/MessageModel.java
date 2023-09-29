@@ -1,7 +1,5 @@
 package com.github.jaykkumar01.watchparty.models;
 
-import javax.xml.transform.sax.SAXResult;
-
 public class MessageModel {
     String userId;
     String name;
@@ -10,6 +8,16 @@ public class MessageModel {
 
     Reply reply;
 
+    public ImageModel getImageModel() {
+        return imageModel;
+    }
+
+    public void setImageModel(ImageModel imageModel) {
+        this.imageModel = imageModel;
+    }
+
+    ImageModel imageModel;
+
     public MessageModel() {
     }
 
@@ -17,6 +25,13 @@ public class MessageModel {
         this.userId = userId;
         this.message = message;
     }
+
+    public MessageModel(String userId,String name, String message) {
+        this.userId = userId;
+        this.name = name;
+        this.message = message;
+    }
+
 
     public String getName() {
         return name;
