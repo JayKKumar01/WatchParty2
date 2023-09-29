@@ -165,10 +165,10 @@ public class CallService extends Service implements Data {
 
             @Override
             public void sendMessage(MessageModel messageModel) {
+                String str = stringToString(null,0,0,messageModel.getName(),messageModel.getMessage());
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        String str = objToString(null,0,0,messageModel.getName(),messageModel.getMessage());
                         callJavaScript("javascript:sendFile("+ str +")");
                     }
                 });
@@ -222,6 +222,16 @@ public class CallService extends Service implements Data {
             joiner.add(item.toString());
         }
         return joiner.toString();
+    }
+    private String stringToString(Object... items) {
+        StringJoiner joiner = new StringJoiner("\",\"");
+        for (Object item : items) {
+            if (item == null){
+                item = "null";
+            }
+            joiner.add(item.toString());
+        }
+        return "\""+joiner.toString()+"\"";
     }
 
 

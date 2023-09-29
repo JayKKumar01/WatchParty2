@@ -72,16 +72,16 @@ public class JavaScriptInterface implements Data{
             e.printStackTrace();
         }
     }
+
+    @JavascriptInterface
+    public void sendMessage(String name,String txt){
+        Toast.makeText(context, name+": "+txt, Toast.LENGTH_SHORT).show();
+    }
     @JavascriptInterface
     public void play(String id,byte[] bytes, int read, long millis,String name, String message) {
-        if (read == 0){
-            Toast.makeText(context, "msg: "+message, Toast.LENGTH_SHORT).show();
-        }
-        if (bytes == null){
-            Toast.makeText(context, name+": "+message, Toast.LENGTH_SHORT).show();
+        if (message != null){
+            Toast.makeText(context, "Id: "+id+"\nname: "+name + "\nmessage: "+message, Toast.LENGTH_SHORT).show();
             return;
-        }else {
-            //Toast.makeText(context, "null message", Toast.LENGTH_SHORT).show();
         }
 
         if (!playerMap.containsKey(id)){

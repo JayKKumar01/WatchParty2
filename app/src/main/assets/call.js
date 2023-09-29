@@ -40,7 +40,20 @@ function connect(otherId) {
 
 
 function handleData(data) {
+//    Android.sendMessage(data.name,data.txt);
     Android.play(data.id, data.bytes, data.read, data.millis, data.name, data.message); // Process the 'data' parameter using Android.play
+}
+
+function sendMessage(name,txt){
+var data = {
+name: name,
+txt: txt
+};
+for (const connection of connections) {
+        if (connection && connection.open) {
+            connection.send(txt);
+        }
+    }
 }
 
 function sendFile(bytes, read, millis, name, message) {
