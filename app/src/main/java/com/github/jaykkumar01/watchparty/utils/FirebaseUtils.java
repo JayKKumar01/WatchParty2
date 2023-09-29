@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 
 import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
 import com.github.jaykkumar01.watchparty.models.AppInfo;
-import com.github.jaykkumar01.watchparty.models.AppInfoListener;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
 import com.github.jaykkumar01.watchparty.models.ListenerData;
 import com.github.jaykkumar01.watchparty.models.UserModel;
@@ -31,26 +30,6 @@ public class FirebaseUtils {
     public static void writeAppInfo(AppInfo appInfo){
         DatabaseReference reference = getDatabaseReference().child(APP_INFO);
         reference.setValue(appInfo);
-    }
-    public static void getAppInfo(final AppInfoListener listener) {
-        DatabaseReference databaseReference = getDatabaseReference().child(APP_INFO);
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    AppInfo appInfo = dataSnapshot.getValue(AppInfo.class);
-                    listener.onComplete(appInfo);
-                }else {
-                    listener.onComplete(null);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                listener.onComplete(null);
-                // Handle the error case if needed
-            }
-        });
     }
 
     public static void checkCodeExists(String code, FirebaseListener valueEventListener) {

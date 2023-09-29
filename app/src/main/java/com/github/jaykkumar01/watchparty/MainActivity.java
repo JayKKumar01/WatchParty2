@@ -59,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        isLoading = true;
+        btnJoin.setText("Verifying...");
+
         String name = etJoinName.getText().toString().trim();
         String code = (etCode.getText() != null && !etCode.getText().toString().isEmpty()) ? etCode.getText().toString().trim() : null;
 
@@ -74,20 +77,23 @@ public class MainActivity extends AppCompatActivity {
                     new FirebaseListener() {
                         @Override
                         public void onComplete(boolean successful,ListenerData data) {
+                            if (!isLoading) {// remove callback
+                                return;
+                            }
                             if (successful) {
                                 launchPlayerActivity(room);
                             }
                             else{
                                 Toast.makeText(MainActivity.this, data.getErrorMessage(), Toast.LENGTH_SHORT).show();
                             }
+                            cancel(btnJoin);
                         }
                     });
 
             return;
         }
 
-        isLoading = true;
-        btnJoin.setText("Verifying...");
+
         FirebaseUtils.checkCodeExists(code, new FirebaseListener() {
             @Override
             public void onComplete(boolean successful, ListenerData data) {

@@ -1,11 +1,18 @@
 package com.github.jaykkumar01.watchparty.services;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioRecord;
+import android.media.AudioTrack;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,6 +25,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.github.jaykkumar01.watchparty.PlayerActivity;
@@ -25,44 +33,147 @@ import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.CallServiceListener;
 import com.github.jaykkumar01.watchparty.interfaces.Data;
-import com.github.jaykkumar01.watchparty.models.AgoraConfig;
+import com.github.jaykkumar01.watchparty.interfaces.JavaScriptInterface;
+import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.receivers.NotificationReceiver;
+import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class CallService extends Service implements CallServiceListener, Data {
+public class CallService extends Service implements Data {
 
     private WebView webView;
-    private String code = null;
     private Room room;
-    private AgoraConfig agoraConfig;
-    private UserModel userModel;
     private NotificationManager notificationManager;
 
     public static CallServiceListener listener;
     public static boolean isMute, isDeafen;
-    private int max = 0;
+    Handler handler = new Handler();
+    private AudioRecord audioRecord;
+    private boolean isRecording;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    JavaScriptInterface javascriptInterface;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        listener = this;
-        if (intent != null) {
-            room = (Room) intent.getSerializableExtra(getString(R.string.room));
-            agoraConfig = room.getAgoraConfig();
-            userModel = room.getUser();
-            code = room.getCode();
-            if (room.getRoomType() == RoomType.CREATED){
-                createNotification(isMute,isDeafen);
-            }
+        setupListener();
+        room = (Room) intent.getSerializableExtra(getString(R.string.room));
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
         }
+
+        audioRecord = new AudioRecord(
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                SAMPLE_RATE,
+                CHANNEL_CONFIG,
+                AUDIO_FORMAT,
+                BUFFER_SIZE_IN_BYTES);
+        
+        
+        
+        createNotification(isMute,isDeafen);
+
         setupWebView();
 
 
         return START_STICKY;
+    }
+
+
+    private void startRecording() {
+        isRecording = true;
+        audioRecord.startRecording();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+
+                byte[] buffer = new byte[BUFFER_SIZE_IN_BYTES];
+                while (isRecording) {
+
+                    long millis = System.currentTimeMillis();
+                    if (audioRecord.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
+                        continue;
+                    }
+                    int read = audioRecord.read(buffer, 0, BUFFER_SIZE_IN_BYTES);
+
+
+                    String str = objToString(Arrays.toString(buffer),read,millis,null,null);
+
+                    if (!Base.isNetworkAvailable(CallService.this)){
+                        continue;
+                    }
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callJavaScript("javascript:sendFile("+ str +")");
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private void setupListener() {
+        listener = new CallServiceListener() {
+            @Override
+            public void onJoinCall(String id) {
+                startRecording();
+                for (UserModel user: room.getUserList()){
+                    String userId = user.getUserId();
+                    if (!userId.equals(id)){
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callJavaScript("javascript:connect(\""+userId+"\")");
+                            }
+                        });
+
+                    }
+                }
+            }
+
+            @Override
+            public void onToogleMic() {
+
+            }
+
+            @Override
+            public void onDisconnect() {
+                if (webView != null) {
+                    webView.loadUrl("");
+                    Toast.makeText(CallService.this, "Disconnected!", Toast.LENGTH_SHORT).show();
+                }
+
+                if (notificationManager != null) {
+                    notificationManager.cancelAll();
+                }
+                stopSelf();
+
+            }
+
+            @Override
+            public void onToogleDeafen() {
+
+            }
+
+            @Override
+            public void sendMessage(MessageModel messageModel) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        String str = objToString(null,0,0,messageModel.getName(),messageModel.getMessage());
+                        callJavaScript("javascript:sendFile("+ str +")");
+                    }
+                });
+            }
+        };
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -85,17 +196,12 @@ public class CallService extends Service implements CallServiceListener, Data {
                 if(x){
                     return;
                 }
-//                view.loadUrl("javascript:test()");
-                callJavaScript("init(\""
-                        + agoraConfig.getId() +"\",\""
-                        + agoraConfig.getToken()+"\",\""
-                        +agoraConfig.getChannel()+"\")");
-//                callJavaScript("javascript:test()");
-                //Toast.makeText(CallService.this, "Started", Toast.LENGTH_SHORT).show();
+                callJavaScript("javascript:init(\""+ room.getUser().getUserId() +"\")");
             }
 
         });
-        webView.addJavascriptInterface(new JavaScriptInterface(), "Android");
+        javascriptInterface = new JavaScriptInterface(CallService.this);
+        webView.addJavascriptInterface(javascriptInterface, "Android");
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setDomStorageEnabled(true);
@@ -107,6 +213,17 @@ public class CallService extends Service implements CallServiceListener, Data {
 
     }
 
+    private String objToString(Object... items) {
+        StringJoiner joiner = new StringJoiner(",");
+        for (Object item : items) {
+            if (item == null){
+                item = "null";
+            }
+            joiner.add(item.toString());
+        }
+        return joiner.toString();
+    }
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -116,53 +233,6 @@ public class CallService extends Service implements CallServiceListener, Data {
         webView.evaluateJavascript(func, null);
     }
 
-
-    @Override
-    public void onJoinCall(boolean call, List<UserModel> userList,long joinTime) {
-        if(call){
-            callAllUsers(userList);
-            userModel.setJoinTime(joinTime);
-            //FirebaseUtils.updateUserData(code, userModel);
-            createNotification(isMute,isDeafen);
-        }
-        else{
-            onDisconnect();
-        }
-
-    }
-
-    @Override
-    public void onToogleMic() {
-        isMute = !isMute;
-        userModel.setMute(isMute);
-        //FirebaseUtils.updateUserData(code, userModel);
-        callJavaScript("javascript:toggleAudio(\""+!isMute+"\")");
-        createNotification(isMute,isDeafen);
-    }
-
-    @Override
-    public void onDisconnect() {
-        if (webView != null) {
-            webView.loadUrl("");
-            callJavaScript("javascript:endCall()");
-            FirebaseUtils.removeUserData(code, userModel);
-            Toast.makeText(this, "Disconnected!", Toast.LENGTH_SHORT).show();
-        }
-        if (notificationManager != null) {
-            notificationManager.cancelAll();
-        }
-        stopSelf();
-    }
-
-    @Override
-    public void onToogleDeafen() {
-        isDeafen = !isDeafen;
-        userModel.setDeafen(isDeafen);
-        //FirebaseUtils.updateUserData(code, userModel);
-        callJavaScript("javascript:toggleAudio(\""+!isDeafen+"\")");
-        callJavaScript("javascript:muteAllAudioElements("+isDeafen+")");
-        createNotification(isMute,isDeafen);
-    }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
@@ -184,9 +254,7 @@ public class CallService extends Service implements CallServiceListener, Data {
 
 
         Intent callIntent = new Intent(this, PlayerActivity.class);
-
-        callIntent.putExtra("userModel", userModel);
-        callIntent.putExtra("code", code);
+        callIntent.putExtra(getString(R.string.room), room);
         callIntent.putExtra("type","pendingIntent");
         callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, callIntent,
@@ -235,45 +303,5 @@ public class CallService extends Service implements CallServiceListener, Data {
 
         }
     }
-    public class JavaScriptInterface {
-        @JavascriptInterface
-        public void onCallback(String message) {
-            Toast.makeText(CallService.this, message, Toast.LENGTH_SHORT).show();
-//            handler.post(runnable);
-            // Handle the callback in the Java code
-            // You can perform any necessary actions here
-        }
-
-        @JavascriptInterface
-        public void onPeerConnected(){
-            //Toast.makeText(CallService.this, "Peer Connected", Toast.LENGTH_SHORT).show();
-        }
-        @JavascriptInterface
-        public void onStreamStarted(){
-//            Toast.makeText(CallService.this, "Stream Connected", Toast.LENGTH_SHORT).show();
-//            AudioFocusManager audioFocusManager = new AudioFocusManager(CallService.this);
-//            audioFocusManager.requestAudioFocus();
-
-        }
-        @JavascriptInterface
-        public void onPrintIntensity(String otherUserId,int averageIntensity){
-
-            if (max<averageIntensity){
-                max = averageIntensity;
-            }
-
-            Log.d("intensity",otherUserId+": "+averageIntensity);
-            //Toast.makeText(CallService.this, "Peer Connected", Toast.LENGTH_SHORT).show();
-        }
-    }
-    Handler handler = new Handler();
-    Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            Log.d("intensityMax",max+" :max");
-            max = 0;
-            handler.postDelayed(this,5000);
-        }
-    };
 
 }

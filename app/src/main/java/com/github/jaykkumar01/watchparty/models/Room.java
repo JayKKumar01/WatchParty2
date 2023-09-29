@@ -3,12 +3,15 @@ package com.github.jaykkumar01.watchparty.models;
 import com.github.jaykkumar01.watchparty.enums.RoomType;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class Room implements Serializable {
     UserModel user;
     String code;
     RoomType roomType;
-    AgoraConfig agoraConfig;
+    boolean peerConnected;
+    List<UserModel> userList;
+
 
     public Room() {
     }
@@ -18,12 +21,20 @@ public class Room implements Serializable {
         this.code = code;
     }
 
-    public AgoraConfig getAgoraConfig() {
-        return agoraConfig;
+    public List<UserModel> getUserList() {
+        return userList;
     }
 
-    public void setAgoraConfig(AgoraConfig agoraConfig) {
-        this.agoraConfig = agoraConfig;
+    public void setUserList(List<UserModel> userList) {
+        this.userList = userList;
+    }
+
+    public boolean isPeerConnected() {
+        return peerConnected;
+    }
+
+    public void setPeerConnected(boolean peerConnected) {
+        this.peerConnected = peerConnected;
     }
 
     public UserModel getUser() {

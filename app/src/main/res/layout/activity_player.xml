@@ -8,9 +8,213 @@
     tools:context=".PlayerActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/LYOUT1"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:elevation="2dp"
+        android:background="@drawable/bg_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0">
+
+
+        <TextView
+            android:id="@+id/userName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="qwe qwerty qwertyu"
+            android:fontFamily="serif"
+            android:paddingTop="5dp"
+            android:paddingBottom="8dp"
+            android:minWidth="100dp"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:elevation="4dp"
+            android:layout_marginStart="25dp"
+            android:paddingStart="15dp"
+            android:paddingEnd="15dp"
+            android:background="@drawable/bg_name"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            />
+        <TextView
+            android:id="@+id/roomCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="25dp"
+            android:shadowRadius="5"
+            android:text="123456"
+            android:background="@drawable/bg_code"
+            android:elevation="4dp"
+            android:fontFamily="times"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:textColor="@color/theme_color"
+            android:textSize="13sp"
+            android:textStyle="bold|italic"
+            app:layout_constraintHorizontal_bias="1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewUsers"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/LYOUT1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/chatLayout"
+        app:layout_constraintHeight_percent=".5"
+        app:layout_constraintVertical_bias="1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/LYOUT1"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewChats"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/bottomBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/bottomBar"
+            app:layout_constraintWidth_percent=".98"
+            app:layout_constraintVertical_bias="1"
+            android:layout_marginBottom="5dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/bottomBar_edit"
+                android:layout_marginEnd="1dp"
+                android:background="@drawable/bg_bottombar"
+                app:layout_constraintHorizontal_bias="0"
+                app:layout_constraintVertical_bias="1"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@+id/send"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <EditText
+                    android:id="@+id/messageTXT"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_send_edit"
+                    android:fontFamily="@font/istok_web_regular"
+                    android:hint="Send a message"
+                    android:importantForAutofill="no"
+                    android:inputType="textLongMessage|textMultiLine|textCapSentences"
+                    android:lineSpacingMultiplier=".8"
+                    android:paddingStart="8dp"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp"
+                    android:layout_marginEnd="40dp"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"
+                    app:layout_constraintHorizontal_bias="0"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="RtlSymmetry,TextFields" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/layoutPick"
+                    app:layout_constraintHorizontal_bias="1"
+                    app:layout_constraintVertical_bias="1"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent">
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="0dp"
+                        app:layout_constraintDimensionRatio="1"
+                        android:padding="10dp"
+                        android:id="@+id/camera"
+                        android:onClick="openCamera"
+                        android:src="@drawable/camera"
+                        app:layout_constraintHorizontal_bias="1"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toLeftOf="@id/videoCamera"
+                        tools:ignore="UsingOnClickInXml" />
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="0dp"
+                        app:layout_constraintDimensionRatio="1"
+                        android:padding="7dp"
+                        android:id="@+id/videoCamera"
+                        android:onClick="openVideoCamera"
+                        android:src="@drawable/video_camera"
+                        app:layout_constraintHorizontal_bias="1"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        tools:ignore="UsingOnClickInXml"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="0dp"
+                app:layout_constraintDimensionRatio="1"
+                android:paddingStart="10dp"
+                android:paddingEnd="8dp"
+                android:id="@+id/send"
+                android:onClick="sendMessage"
+                android:background="@drawable/bg_send"
+                android:src="@drawable/ic_baseline_send_24"
+                app:layout_constraintHorizontal_bias="1"
+                app:layout_constraintVertical_bias="1"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                tools:ignore="UsingOnClickInXml" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/playerLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="gone"
         app:layout_constraintVertical_bias="0"
         app:layout_constraintHeight_percent=".5"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -54,6 +258,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:id="@+id/partyRoomLayout"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
