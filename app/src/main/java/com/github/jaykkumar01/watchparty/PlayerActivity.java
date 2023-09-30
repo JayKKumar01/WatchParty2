@@ -5,6 +5,7 @@ import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
@@ -31,8 +32,10 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class PlayerActivity extends AppCompatActivity {
@@ -194,8 +197,15 @@ public class PlayerActivity extends AppCompatActivity {
         String message = messageET.getText().toString();
         MessageModel messageModel = new MessageModel(room.getUser().getUserId(),message);
         messageModel.setName(room.getUser().getName());
+        messageModel.setTimeMillis(System.currentTimeMillis());
         CallService.listener.sendMessage(messageModel);
         messageET.setText("");
+
+
+//        Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
+//        SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
+//        String msgDate = dateFormat.format(messageModel.getTimeMillis());
+//        Toast.makeText(this, ""+msgDate, Toast.LENGTH_SHORT).show();
     }
 
 

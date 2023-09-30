@@ -168,7 +168,12 @@ public class CallService extends Service implements Data {
 
             @Override
             public void sendMessage(MessageModel messageModel) {
-                String str = stringToString(null,0,0,messageModel.getName(),messageModel.getMessage());
+                String str = stringToString(null,0,
+                        messageModel.getTimeMillis(),
+                        messageModel.getName(),
+                        messageModel.getMessage()
+                );
+//                Toast.makeText(CallService.this, ""+str, Toast.LENGTH_SHORT).show();
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -233,15 +238,32 @@ public class CallService extends Service implements Data {
         return joiner.toString();
     }
     private String stringToString(Object... items) {
-        StringJoiner joiner = new StringJoiner("\",\"");
-        for (Object item : items) {
-            if (item == null){
-                item = "null";
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < items.length; i++) {
+            Object item = items[i];
+            if (item instanceof String) {
+                result.append("\"").append(item).append("\"");
+            } else {
+                result.append(item);
             }
-            joiner.add(item.toString());
+            // Separate items with a comma if it's not the last item
+            if (i < items.length - 1) {
+                result.append(",");
+            }
         }
-        return "\""+joiner.toString()+"\"";
+        return result.toString();
     }
+
+//    private String stringToString(Object... items) {
+//        StringJoiner joiner = new StringJoiner("\",\"");
+//        for (Object item : items) {
+//            if (item == null){
+//                item = "null";
+//            }
+//            joiner.add(item.toString());
+//        }
+//        return "\""+joiner.toString()+"\"";
+//    }
 
 
     @Override

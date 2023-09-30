@@ -1,6 +1,7 @@
 package com.github.jaykkumar01.watchparty.interfaces;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.os.Build;
@@ -17,9 +18,11 @@ import com.github.jaykkumar01.watchparty.services.CallService;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -85,8 +88,13 @@ public class JavaScriptInterface implements Data{
         if (message != null){
             MessageModel messageModel = new MessageModel(id,message);
             messageModel.setName(name);
+            messageModel.setTimeMillis(millis);
             CallService.listener.receiveMessage(messageModel);
-//            Toast.makeText(context, "Id: "+id+"\nname: "+name + "\nmessage: "+message, Toast.LENGTH_SHORT).show();
+
+//            Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
+//            SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
+//            String msgDate = dateFormat.format(messageModel.getTimeMillis());
+//            Toast.makeText(context, millis+": "+msgDate, Toast.LENGTH_SHORT).show();
             return;
         }
 

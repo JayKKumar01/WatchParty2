@@ -22,8 +22,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
     private List<MessageModel> chatList;
     Context context;
-    private Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
+    private final Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
 
     public ChatAdapter(Context context,List<MessageModel> chatList) {
         this.context = context;
@@ -48,21 +48,21 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
     @Override
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
         MessageModel message = chatList.get(position);
-        if (message.getImageModel() == null){
-            holder.imageView.setImageDrawable(null);
-            holder.imageView.setVisibility(View.GONE);
-        }
+//        if (message.getImageModel() == null){
+//            holder.imageView.setImageDrawable(null);
+//            holder.imageView.setVisibility(View.GONE);
+//        }
 
 
-        String timePattern = "hh:mm a";
-        if (android.text.format.DateFormat.is24HourFormat(context)){
-            timePattern = "HH:mm";
-        }
-
-        SimpleDateFormat format = new SimpleDateFormat(timePattern,locale);
-        String time = format.format(message.getTimeMillis());
-
-        holder.time.setText(time);
+//        String timePattern = "hh:mm a";
+//        if (android.text.format.DateFormat.is24HourFormat(context)){
+//            timePattern = "HH:mm";
+//        }
+//
+//        SimpleDateFormat format = new SimpleDateFormat(timePattern,locale);
+//        String time = format.format(message.getTimeMillis());
+//
+//        holder.time.setText(time);
 
 
         String msgDate = dateFormat.format(message.getTimeMillis());
@@ -77,21 +77,22 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
         if (message.getMessage() != null && !message.getMessage().isEmpty()) {
             holder.message.setText(message.getMessage());
+            holder.name.setText(message.getName());
             holder.message.setVisibility(View.VISIBLE);
         }
         else{
             holder.message.setVisibility(View.GONE);
         }
-        Reply reply = message.getReply();
-        if (reply != null){
-            holder.replyName.setText(reply.getName());
-            holder.replymsg.setText(reply.getMessage());
-
-            holder.replyLayout.setVisibility(View.VISIBLE);
-        }
-        else{
-            holder.replyLayout.setVisibility(View.GONE);
-        }
+//        Reply reply = message.getReply();
+//        if (reply != null){
+//            holder.replyName.setText(reply.getName());
+//            holder.replymsg.setText(reply.getMessage());
+//
+//            holder.replyLayout.setVisibility(View.VISIBLE);
+//        }
+//        else{
+//            holder.replyLayout.setVisibility(View.GONE);
+//        }
 
 
 
@@ -104,7 +105,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
     }
 
     public static class ChatViewHolder extends RecyclerView.ViewHolder {
-        TextView message,time,date,replymsg,replyName,fullWidth;
+        TextView message,time,date,replymsg,replyName,fullWidth,name;
         View replyLayout;
         ImageView imageView;
         public ChatViewHolder(@NonNull View itemView) {
@@ -112,13 +113,14 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             message = itemView.findViewById(R.id.item_msg);
             time = itemView.findViewById(R.id.item_time);
             date = itemView.findViewById(R.id.item_date);
+            name = itemView.findViewById(R.id.item_name);
 
-            replyLayout = itemView.findViewById(R.id.replyLayout);
-            replymsg = itemView.findViewById(R.id.item_reply_msg);
-            replyName = itemView.findViewById(R.id.replyName);
-
-            fullWidth = itemView.findViewById(R.id.fullWidth);
-            imageView = itemView.findViewById(R.id.imageView);
+//            replyLayout = itemView.findViewById(R.id.replyLayout);
+//            replymsg = itemView.findViewById(R.id.item_reply_msg);
+//            replyName = itemView.findViewById(R.id.replyName);
+//
+//            fullWidth = itemView.findViewById(R.id.fullWidth);
+//            imageView = itemView.findViewById(R.id.imageView);
         }
     }
 }
