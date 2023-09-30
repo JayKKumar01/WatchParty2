@@ -8,16 +8,11 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioRecord;
-import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
-import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -30,14 +25,16 @@ import androidx.core.app.NotificationCompat;
 
 import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
-import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.CallServiceListener;
 import com.github.jaykkumar01.watchparty.interfaces.Data;
+import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
 import com.github.jaykkumar01.watchparty.interfaces.JavaScriptInterface;
+import com.github.jaykkumar01.watchparty.models.ListenerData;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.receivers.NotificationReceiver;
+import com.github.jaykkumar01.watchparty.update.Info;
 import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 
@@ -52,10 +49,10 @@ public class CallService extends Service implements Data {
 
     private WebView webView;
     private Room room;
+    private UserModel userModel;
     private NotificationManager notificationManager;
 
     public static CallServiceListener listener;
-    public static boolean isMute, isDeafen;
     Handler handler = new Handler();
     private AudioRecord audioRecord;
     private boolean isRecording;
@@ -68,6 +65,7 @@ public class CallService extends Service implements Data {
     public int onStartCommand(Intent intent, int flags, int startId) {
         setupListener();
         room = (Room) intent.getSerializableExtra(getString(R.string.room));
+        userModel = room.getUser();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
         }
@@ -81,12 +79,19 @@ public class CallService extends Service implements Data {
         
         
         
-        createNotification(isMute,isDeafen);
+        createNotification();
 
         setupWebView();
 
 
         return START_STICKY;
+    }
+
+    private void stopRecording(){
+        isRecording = false;
+        if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+            audioRecord.stop();
+        }
     }
 
 
@@ -105,6 +110,8 @@ public class CallService extends Service implements Data {
                         continue;
                     }
                     int read = audioRecord.read(buffer, 0, BUFFER_SIZE_IN_BYTES);
+
+
 
 
                     String str = objToString(Arrays.toString(buffer),read,millis,null,null);
@@ -144,6 +151,32 @@ public class CallService extends Service implements Data {
 
             @Override
             public void onToogleMic() {
+                if (!Info.isMute){
+                    startRecording();
+                }else {
+                    stopRecording();
+                }
+
+                userModel.setMute(Info.isMute);
+                FirebaseUtils.updateUserData(room.getCode(), userModel, null);
+                createNotification();
+            }
+
+            @Override
+            public void onToogleDeafen() {
+                if (Info.isDeafen){
+                    if (isRecording){
+                        stopRecording();
+                    }
+                }else {
+                    if (!Info.isMute){
+                        startRecording();
+                    }
+                }
+
+                userModel.setDeafen(Info.isDeafen);
+                FirebaseUtils.updateUserData(room.getCode(), userModel, null);
+                createNotification();
 
             }
 
@@ -161,10 +194,6 @@ public class CallService extends Service implements Data {
 
             }
 
-            @Override
-            public void onToogleDeafen() {
-
-            }
 
             @Override
             public void sendMessage(MessageModel messageModel) {
@@ -180,12 +209,6 @@ public class CallService extends Service implements Data {
                         callJavaScript("javascript:sendFile("+ str +")");
                     }
                 });
-            }
-
-            @Override
-            public void receiveMessage(MessageModel messageModel) {
-                messageModelList.add(messageModel);
-                PlayerActivity.listener.onReceiveMessage(messageModelList);
             }
         };
     }
@@ -291,7 +314,7 @@ public class CallService extends Service implements Data {
         callJavaScript("javascript:startCall(" + stringBuilder.toString() + ");");
     }
 
-    private void createNotification(boolean isMute, boolean isDeafen) {
+    private void createNotification() {
 
 
         Intent callIntent = new Intent(this, PlayerActivity.class);
@@ -311,8 +334,8 @@ public class CallService extends Service implements Data {
         intent.putExtra("requestCode",REQUEST_CODE_DEAFEN);
         PendingIntent deafenPendingIntent = PendingIntent.getBroadcast(this, REQUEST_CODE_DEAFEN, intent, PendingIntent.FLAG_UPDATE_CURRENT |  PendingIntent.FLAG_IMMUTABLE);
 
-        String muteLabel = isMute? "Unmute" : "Mute";
-        String deafenLabel = isDeafen? "Undeafen" : "Deafen";
+        String muteLabel = Info.isMute? "Unmute" : "Mute";
+        String deafenLabel = Info.isDeafen? "Undeafen" : "Deafen";
         // Create the notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.call)

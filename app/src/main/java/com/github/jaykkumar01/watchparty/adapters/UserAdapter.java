@@ -36,16 +36,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
         if (user.isDeafen()){
             holder.deafen.setVisibility(View.VISIBLE);
-            holder.deafen.setImageResource(R.drawable.deafen_on);
-            holder.mic.setImageResource(R.drawable.mic_off);
+            holder.deafen.setImageResource(R.drawable.deafen_on_small);
+            holder.mic.setImageResource(R.drawable.mic_off_small);
         }
         else {
             holder.deafen.setVisibility(View.GONE);
-            holder.deafen.setImageResource(R.drawable.deafen_off);
+            holder.deafen.setImageResource(R.drawable.deafen_off_small);
             if (user.isMute()){
-                holder.mic.setImageResource(R.drawable.mic_off);
+                holder.mic.setImageResource(R.drawable.mic_off_small);
             }else {
-                holder.mic.setImageResource(R.drawable.mic_img);
+                holder.mic.setImageResource(R.drawable.mic_on_small);
             }
         }
 

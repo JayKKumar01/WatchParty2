@@ -10,10 +10,12 @@ import android.telecom.Call;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
+import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.models.AudioPlayerModel;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
+import com.github.jaykkumar01.watchparty.update.Info;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,6 +34,7 @@ public class JavaScriptInterface implements Data{
     HashMap<String, AudioPlayerModel> playerMap = new HashMap<>();
 
     ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private List<MessageModel> messageModelList = new ArrayList<>();
 
     public JavaScriptInterface(Context context) {
         this.context = context;
@@ -89,7 +92,10 @@ public class JavaScriptInterface implements Data{
             MessageModel messageModel = new MessageModel(id,message);
             messageModel.setName(name);
             messageModel.setTimeMillis(millis);
-            CallService.listener.receiveMessage(messageModel);
+
+            PlayerActivity.listener.onReceiveMessage(messageModel);
+
+//            CallService.listener.receiveMessage(messageModel);
 
 //            Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
 //            SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
@@ -97,6 +103,9 @@ public class JavaScriptInterface implements Data{
 //            Toast.makeText(context, millis+": "+msgDate, Toast.LENGTH_SHORT).show();
             return;
         }
+
+
+
 
         if (!playerMap.containsKey(id)){
             AudioPlayerModel model = new AudioPlayerModel(id,millis);
@@ -114,7 +123,11 @@ public class JavaScriptInterface implements Data{
             public void run() {
 
                 long diff = System.currentTimeMillis() - millis - audioPlayerModel.getOffset();
-                if (diff > 1500){
+                if (diff > 600){
+                    return;
+                }
+
+                if (Info.isDeafen){
                     return;
                 }
 

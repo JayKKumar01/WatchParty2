@@ -5,16 +5,17 @@ import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,17 +27,15 @@ import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
+import com.github.jaykkumar01.watchparty.update.Info;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.Menu;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 
 public class PlayerActivity extends AppCompatActivity {
     Room room;
@@ -46,10 +45,13 @@ public class PlayerActivity extends AppCompatActivity {
     List<EventListenerData> eventListenerList = new ArrayList<>();
     private UserAdapter userAdapter;
     private List<UserModel> userList = new ArrayList<>();
-    private List<MessageModel> chatList = new ArrayList<>();
     private ChatAdapter chatAdapter;
 
     public static PlayerActivityListener listener;
+    ConstraintLayout chatLayout,peerLayout;
+    ImageView micBtn,deafenBtn;
+    ImageView circle;
+    int peerCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +71,14 @@ public class PlayerActivity extends AppCompatActivity {
         setUpListener();
         codeTV = findViewById(R.id.roomCode);
         userNameTV = findViewById(R.id.userName);
+
+        chatLayout = findViewById(R.id.chatLayout);
+        peerLayout = findViewById(R.id.peerLayout);
+        circle = findViewById(R.id.circle);
+
+        micBtn = findViewById(R.id.micBtn);
+        deafenBtn = findViewById(R.id.deafenBtn);
+
         userListRV = findViewById(R.id.recyclerViewUsers);
         setupUsersRecycleView(userListRV);
         chatListRV = findViewById(R.id.recyclerViewChats);
@@ -85,17 +95,17 @@ public class PlayerActivity extends AppCompatActivity {
         listener = new PlayerActivityListener() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
-            public void onReceiveMessage(List<MessageModel> list) {
-//                Toast.makeText(PlayerActivity.this, ""+list.size(), Toast.LENGTH_SHORT).show();
-                chatList = list;
-//                MessageModel messageModel = new MessageModel("id1","name1","message1");
-//                messageModel.setTimeMillis(System.currentTimeMillis());
-//                chatList.add(messageModel);
-                chatAdapter.setChatList(chatList);
-                chatAdapter.notifyDataSetChanged();
-                if (chatListRV.getScrollState() == RecyclerView.SCROLL_STATE_IDLE){
-                    scrollToTop(chatListRV);
-                }
+            public void onReceiveMessage(MessageModel messageModel) {
+                runOnUiThread(() -> {
+                    if (chatLayout.getVisibility() != View.VISIBLE){
+                        circle.setVisibility(View.VISIBLE);
+                    }
+                    chatAdapter.addMessage(messageModel);
+                    chatAdapter.notifyDataSetChanged();
+                    if (chatListRV.getScrollState() == RecyclerView.SCROLL_STATE_IDLE){
+                        scrollToTop(chatListRV);
+                    }
+                });
             }
         };
     }
@@ -106,7 +116,7 @@ public class PlayerActivity extends AppCompatActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setStackFromEnd(true);
         recyclerView.setLayoutManager(llm);
-        chatAdapter = new ChatAdapter(this,chatList);
+        chatAdapter = new ChatAdapter(this,room.getUser().getUserId());
         recyclerView.setAdapter(chatAdapter);
 
 
@@ -134,7 +144,10 @@ public class PlayerActivity extends AppCompatActivity {
                     startService(serviceIntent);
                 }
 
-
+                if (peerLayout.getVisibility() != View.VISIBLE){
+                    circle.setVisibility(View.VISIBLE);
+                }
+                peerCount = userList.size();
                 userAdapter.setList(userList);
                 userAdapter.notifyDataSetChanged();
 
@@ -194,6 +207,10 @@ public class PlayerActivity extends AppCompatActivity {
         if (messageET.getText() == null || messageET.getText().toString().isEmpty()){
             return;
         }
+        if (peerCount < 2){
+            Toast.makeText(this, "Invite Friends to chat!", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String message = messageET.getText().toString();
         MessageModel messageModel = new MessageModel(room.getUser().getUserId(),message);
         messageModel.setName(room.getUser().getName());
@@ -201,6 +218,7 @@ public class PlayerActivity extends AppCompatActivity {
         CallService.listener.sendMessage(messageModel);
         messageET.setText("");
 
+        listener.onReceiveMessage(messageModel);
 
 //        Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
 //        SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
@@ -209,5 +227,59 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
 
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public void toogleLayout(View view) {
+        circle.setVisibility(View.GONE);
+        ImageView imageView = (ImageView) view;
+        if (peerLayout.getVisibility() == View.VISIBLE){
+            peerLayout.setVisibility(View.GONE);
+            chatLayout.setVisibility(View.VISIBLE);
+            imageView.setImageDrawable(getDrawable(R.drawable.baseline_people_24));
+        } else {
+            peerLayout.setVisibility(View.VISIBLE);
+            chatLayout.setVisibility(View.GONE);
+            imageView.setImageDrawable(getDrawable(R.drawable.baseline_chat_bubble_24));
+        }
+    }
 
+    public void mic(View view) {
+        toogleMic(true);
+    }
+    public void deafen(View view) {
+        toogleDeafen(true);
+    }
+    private void toogleMic(boolean isTap) {
+        Info.isMute = !Info.isMute;
+        if (isTap){
+            CallService.listener.onToogleMic();
+        }
+        setMicImage();
+    }
+    private void toogleDeafen(boolean isTap) {
+        Info.isDeafen = !Info.isDeafen;
+        if (isTap){
+            CallService.listener.onToogleDeafen();
+        }
+        setDeafenImage();
+    }
+
+    private void setDeafenImage() {
+        if(Info.isDeafen){
+            deafenBtn.setImageResource(R.drawable.deafen_on);
+            micBtn.setVisibility(View.GONE);
+        }
+        else{
+            deafenBtn.setImageResource(R.drawable.deafen_off);
+            micBtn.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void setMicImage() {
+        if(Info.isMute){
+            micBtn.setImageResource(R.drawable.mic_off);
+        }
+        else{
+            micBtn.setImageResource(R.drawable.mic_on);
+        }
+    }
 }
