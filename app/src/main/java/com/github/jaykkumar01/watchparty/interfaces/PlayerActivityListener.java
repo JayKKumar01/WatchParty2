@@ -7,4 +7,10 @@ import java.util.List;
 
 public interface PlayerActivityListener {
     void onReceiveMessage(MessageModel messageModel);
+
+    void onToogleMic();
+
+    void onDisconnect();
+
+    void onToogleDeafen();
 }

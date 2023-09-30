@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.jaykkumar01.watchparty.adapters.ChatAdapter;
 import com.github.jaykkumar01.watchparty.adapters.UserAdapter;
+import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerActivityListener;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
@@ -89,6 +90,11 @@ public class PlayerActivity extends AppCompatActivity {
 
         messageET = findViewById(R.id.messageTXT);
 
+        if (room.getRoomType() == RoomType.PENDING){
+            setMicImage();
+            setDeafenImage();
+        }
+
     }
 
     private void setUpListener() {
@@ -106,6 +112,21 @@ public class PlayerActivity extends AppCompatActivity {
                         scrollToTop(chatListRV);
                     }
                 });
+            }
+
+            @Override
+            public void onToogleMic() {
+                toogleMic(false);
+            }
+
+            @Override
+            public void onDisconnect() {
+                finish();
+            }
+
+            @Override
+            public void onToogleDeafen() {
+                toogleDeafen(false);
             }
         };
     }
@@ -142,6 +163,7 @@ public class PlayerActivity extends AppCompatActivity {
                     Intent serviceIntent = new Intent(this, CallService.class);
                     serviceIntent.putExtra(getString(R.string.room),room);
                     startService(serviceIntent);
+//                    Toast.makeText(this, "Sevice Started", Toast.LENGTH_SHORT).show();
                 }
 
                 if (peerLayout.getVisibility() != View.VISIBLE){
@@ -194,13 +216,17 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //listener = null;
         if (!eventListenerList.isEmpty()){
             for (EventListenerData listenerData: eventListenerList) {
                 listenerData.getDatabaseReference().removeEventListener(listenerData.getValueEventListener());
             }
         }
-        FirebaseUtils.removeUserData(room.getCode(),room.getUser());
-        CallService.listener.onDisconnect();
+        //FirebaseUtils.removeUserData(room.getCode(),room.getUser());
+        if (CallService.listener == null){
+            return;
+        }
+        //CallService.listener.onDisconnect();
     }
 
     public void sendMessage(View view) {
@@ -243,20 +269,22 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void mic(View view) {
+        Info.isMute = !Info.isMute;
         toogleMic(true);
     }
     public void deafen(View view) {
+        Info.isDeafen = !Info.isDeafen;
         toogleDeafen(true);
     }
     private void toogleMic(boolean isTap) {
-        Info.isMute = !Info.isMute;
+
         if (isTap){
             CallService.listener.onToogleMic();
         }
         setMicImage();
     }
     private void toogleDeafen(boolean isTap) {
-        Info.isDeafen = !Info.isDeafen;
+
         if (isTap){
             CallService.listener.onToogleDeafen();
         }
@@ -280,6 +308,13 @@ public class PlayerActivity extends AppCompatActivity {
         }
         else{
             micBtn.setImageResource(R.drawable.mic_on);
+        }
+    }
+
+    public void endCall(View view) {
+        finish();
+        if (CallService.listener != null){
+            CallService.listener.onDisconnect();
         }
     }
 }

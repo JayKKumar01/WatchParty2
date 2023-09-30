@@ -25,6 +25,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
+import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.CallServiceListener;
 import com.github.jaykkumar01.watchparty.interfaces.Data;
 import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
@@ -191,7 +192,10 @@ public class CallService extends Service implements Data {
                     notificationManager.cancelAll();
                 }
                 stopSelf();
-
+                if (PlayerActivity.listener == null){
+                    return;
+                }
+                PlayerActivity.listener.onDisconnect();
             }
 
 
@@ -316,10 +320,10 @@ public class CallService extends Service implements Data {
 
     private void createNotification() {
 
+        room.setRoomType(RoomType.PENDING);
 
         Intent callIntent = new Intent(this, PlayerActivity.class);
         callIntent.putExtra(getString(R.string.room), room);
-        callIntent.putExtra("type","pendingIntent");
         callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, callIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
@@ -344,7 +348,7 @@ public class CallService extends Service implements Data {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .addAction(R.drawable.call_end, "Disconnect", hangupPendingIntent)
                 .addAction(R.drawable.mic_on, muteLabel, mutePendingIntent)
-                .addAction(R.drawable.mic_on, deafenLabel, deafenPendingIntent)
+                .addAction(R.drawable.deafen_on, deafenLabel, deafenPendingIntent)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setOngoing(true);
@@ -368,4 +372,10 @@ public class CallService extends Service implements Data {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        listener = null;
+        FirebaseUtils.removeUserData(room.getCode(),room.getUser());
+    }
 }
