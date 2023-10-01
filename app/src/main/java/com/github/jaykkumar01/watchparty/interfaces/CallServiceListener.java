@@ -9,4 +9,12 @@ public interface CallServiceListener {
     void onToogleDeafen();
 
     void sendMessage(MessageModel messageModel);
+
+    void onSendSeekInfo(long positionMs);
+
+    void onSendPlayPauseInfo(boolean isPlaying);
+
+    void onSendPlaybackState(String id, boolean playing, long currentPosition);
+
+    void onSendPlaybackStateRequest();
 }

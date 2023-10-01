@@ -28,9 +28,7 @@ import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.CallServiceListener;
 import com.github.jaykkumar01.watchparty.interfaces.Data;
-import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
 import com.github.jaykkumar01.watchparty.interfaces.JavaScriptInterface;
-import com.github.jaykkumar01.watchparty.models.ListenerData;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
@@ -114,7 +112,7 @@ public class CallService extends Service implements Data {
 
 
 
-                    String str = objToString(Arrays.toString(buffer),read,millis,null,null);
+                    String str = objToString(Arrays.toString(buffer),read,millis);
 
                     if (!Base.isNetworkAvailable(CallService.this)){
                         continue;
@@ -200,16 +198,66 @@ public class CallService extends Service implements Data {
 
             @Override
             public void sendMessage(MessageModel messageModel) {
-                String str = stringToString(null,0,
-                        messageModel.getTimeMillis(),
+                String str = stringToString(
                         messageModel.getName(),
-                        messageModel.getMessage()
+                        messageModel.getMessage(),
+                        messageModel.getTimeMillis()
                 );
-//                Toast.makeText(CallService.this, ""+str, Toast.LENGTH_SHORT).show();
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("javascript:sendFile("+ str +")");
+                        callJavaScript("javascript:sendMessage("+ str +")");
+                    }
+                });
+            }
+
+            @Override
+            public void onSendSeekInfo(long positionMs) {
+                String str = stringToString(
+                        positionMs
+                );
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callJavaScript("javascript:sendSeekInfo("+ str +")");
+                    }
+                });
+            }
+
+            @Override
+            public void onSendPlayPauseInfo(boolean isPlaying) {
+                String str = stringToString(
+                        isPlaying
+                );
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callJavaScript("javascript:sendPlayPauseInfo("+ str +")");
+                    }
+                });
+            }
+
+            @Override
+            public void onSendPlaybackState(String id, boolean isPlaying, long currentPosition) {
+                String str = stringToString(
+                        id,
+                        isPlaying,
+                        currentPosition
+                );
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callJavaScript("javascript:sendPlaybackState("+ str +")");
+                    }
+                });
+            }
+
+            @Override
+            public void onSendPlaybackStateRequest() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callJavaScript("javascript:sendPlaybackStateRequest()");
                     }
                 });
             }

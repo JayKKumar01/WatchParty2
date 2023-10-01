@@ -46,67 +46,16 @@ public class JavaScriptInterface implements Data{
         CallService.listener.onJoinCall(id);
     }
 
-    @JavascriptInterface
-    public void sendToast(String toast){
-        Toast.makeText(context, ""+toast, Toast.LENGTH_SHORT).show();
-    }
-    @JavascriptInterface
-    public void onClose(String id){
-//        PeerService.listener.onStop();
-        Toast.makeText(context, "Closed: "+id, Toast.LENGTH_SHORT).show();
-    }
-    @JavascriptInterface
-    public void showText(String txt){
-//        MainActivity.listener.onRead(txt);
-    }
-
 
     @JavascriptInterface
     public void send(String msg) {
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
     }
 
-    private void saveBytesToFile(byte[] bytes, int read) {
-        try {
-            File externalDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            File filePath = new File(externalDir, "testing/received_audio.pcm");
-            File destPath = new File(externalDir, "testing/received_audio.wav");
-            FileOutputStream fos = new FileOutputStream(filePath, true); // Use "true" to append to the existing file
-            fos.write(bytes, 0, read);
-            fos.close();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                PCM.rawToWave(filePath,destPath,SAMPLE_RATE);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     @JavascriptInterface
-    public void sendMessage(String name,String txt){
-        Toast.makeText(context, name+": "+txt, Toast.LENGTH_SHORT).show();
-    }
-    @JavascriptInterface
-    public void play(String id,byte[] bytes, int read, long millis,String name, String message) {
-        if (message != null){
-            MessageModel messageModel = new MessageModel(id,message);
-            messageModel.setName(name);
-            messageModel.setTimeMillis(millis);
-
-            PlayerActivity.listener.onReceiveMessage(messageModel);
-
-//            CallService.listener.receiveMessage(messageModel);
-
-//            Locale locale = Resources.getSystem().getConfiguration().getLocales().get(0);
-//            SimpleDateFormat dateFormat = new SimpleDateFormat("dd LLL yyyy",locale);
-//            String msgDate = dateFormat.format(messageModel.getTimeMillis());
-//            Toast.makeText(context, millis+": "+msgDate, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-
-
-
+    public void showFile(String id,byte[] bytes, int read, long millis){
         if (!playerMap.containsKey(id)){
             AudioPlayerModel model = new AudioPlayerModel(id,millis);
             playerMap.put(id,model);
@@ -130,72 +79,33 @@ public class JavaScriptInterface implements Data{
                 if (Info.isDeafen){
                     return;
                 }
-
-//                if (++delayCount <= 10){
-//                    sumDelay += diff;
-//
-//                    int avg = (int) (sumDelay/delayCount) + 200;
-//                    delay = avg/2;
-//                }
-//
-//                int divider = (int) Math.max(1, diff / delay);
-                int divider = 1;
                 audioPlayerModel.getAudioTrack().write(bytes,0,read);
-//                audioTrack.write(bytes,0,read/divider);
             }
         });
     }
 
+    @JavascriptInterface
+    public void showMessage(String id, String name, String message, long millis){
+        MessageModel messageModel = new MessageModel(id,message);
+        messageModel.setName(name);
+        messageModel.setTimeMillis(millis);
 
-    private class ByteData {
-        byte[] bytes;
-        int read;
-        long millis;
-        boolean played;
-
-        public ByteData() {
-        }
-
-        public boolean isPlayed() {
-            return played;
-        }
-
-        public void setPlayed(boolean played) {
-            this.played = played;
-        }
-
-        public ByteData(byte[] bytes) {
-            this.bytes = bytes;
-        }
-
-        public ByteData(byte[] bytes, int read, long millis) {
-            this.bytes = bytes;
-            this.read = read;
-            this.millis = millis;
-        }
-
-        public byte[] getBytes() {
-            return bytes;
-        }
-
-        public void setBytes(byte[] bytes) {
-            this.bytes = bytes;
-        }
-
-        public int getRead() {
-            return read;
-        }
-
-        public void setRead(int read) {
-            this.read = read;
-        }
-
-        public long getMillis() {
-            return millis;
-        }
-
-        public void setMillis(long millis) {
-            this.millis = millis;
-        }
+        PlayerActivity.listener.onReceiveMessage(messageModel);
+    }
+    @JavascriptInterface
+    public void handleSeekInfo(String id,long positionMs){
+        PlayerActivity.listener.onSeekInfo(id,positionMs);
+    }
+    @JavascriptInterface
+    public void handlePlayPauseInfo(String id,boolean isPlaying){
+        PlayerActivity.listener.onPlayPauseInfo(id,isPlaying);
+    }
+    @JavascriptInterface
+    public void handlePlaybackStateRequest(String id){
+        PlayerActivity.listener.onPlaybackStateRequest(id);
+    }
+    @JavascriptInterface
+    public void handlePlaybackState(String id,boolean isPlaying, long positionMs){
+        PlayerActivity.listener.onPlaybackStateRecevied(id,isPlaying,positionMs);
     }
 }

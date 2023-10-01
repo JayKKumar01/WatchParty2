@@ -5,4 +5,6 @@ public interface PlayerListener {
 
 
     void onIsPlaying(boolean isPlaying);
+
+    void onPlayerReady();
 }

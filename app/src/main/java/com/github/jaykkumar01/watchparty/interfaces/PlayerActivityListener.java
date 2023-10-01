@@ -13,4 +13,12 @@ public interface PlayerActivityListener {
     void onDisconnect();
 
     void onToogleDeafen();
+
+    void onSeekInfo(String id, long positionMs);
+
+    void onPlayPauseInfo(String id, boolean isPlaying);
+
+    void onPlaybackStateRequest(String id);
+
+    void onPlaybackStateRecevied(String id, boolean isPlaying, long positionMs);
 }

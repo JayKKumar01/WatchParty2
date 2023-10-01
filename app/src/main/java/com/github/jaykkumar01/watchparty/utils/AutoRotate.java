@@ -4,6 +4,8 @@ package com.github.jaykkumar01.watchparty.utils;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.media.VolumeShaper;
 import android.view.OrientationEventListener;
 
 public class AutoRotate {
@@ -16,6 +18,10 @@ public class AutoRotate {
                 int leftL = 90;
                 int rightL = 270;
                 if (epsilonCheck(orientation,leftL,epsilon) || epsilonCheck(orientation, rightL, epsilon)){
+                    if (context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+                        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+                        return;
+                    }
                     activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
                 }
             }

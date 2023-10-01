@@ -37,27 +37,119 @@ function connect(otherId) {
     });
     
 }
-
-
-function handleData(data) {
-    Android.play(data.id, data.bytes, data.read, data.millis, data.name, data.message); // Process the 'data' parameter using Android.play
-}
-
-
-function sendFile(bytes, read, millis, name, message) {
+function sendSeekInfo(positionMs) {
     var data = {
+        type: 'seekInfo',
         id: myId,
-        bytes: bytes,
-        read: read,
-        millis: millis,
-        name: name,
-        message: message
+        positionMs: positionMs
     };
 
-    // Loop through all connections and send data to each one
+    // Loop through all connections and send the seek info data to each one
     for (const connection of connections) {
         if (connection && connection.open) {
             connection.send(data);
         }
     }
 }
+
+function sendPlaybackStateRequest() {
+    var data = {
+        type: 'playbackStateRequest',
+        id: myId
+    };
+
+    // Loop through all connections and send the playback state request data to each one
+    for (const connection of connections) {
+        if (connection && connection.open) {
+            connection.send(data);
+        }
+    }
+}
+
+
+function sendPlayPauseInfo(isPlaying) {
+    var data = {
+        type: 'playPauseInfo',
+        id: myId,
+        isPlaying: isPlaying
+    };
+
+    // Loop through all connections and send the play/pause info data to each one
+    for (const connection of connections) {
+        if (connection && connection.open) {
+            connection.send(data);
+        }
+    }
+}
+
+function handleData(data) {
+    if (data.type === 'message') {
+        Android.showMessage(data.id, data.name, data.message, data.millis);
+    } else if (data.type === 'file') {
+        Android.showFile(data.id, data.bytes, data.read, data.millis);
+    } else if (data.type === 'seekInfo') {
+        Android.handleSeekInfo(data.id, data.positionMs);
+    } else if (data.type === 'playPauseInfo') {
+        Android.handlePlayPauseInfo(data.id, data.isPlaying);
+    } else if (data.type === 'playbackStateRequest') {
+        Android.handlePlaybackStateRequest(data.id);
+    } else if (data.type === 'playbackState') {
+//        Android.handleSeekInfo(data.id, data.positionMs);
+//        Android.handlePlayPauseInfo(data.id, data.isPlaying);
+        Android.handlePlaybackState(data.id, data.isPlaying, data.positionMs);
+    }
+}
+
+function sendPlaybackState(id, isPlaying, positionMs) {
+    var data = {
+        type: 'playbackState',
+        id: myId,
+        isPlaying: isPlaying,
+        positionMs: positionMs
+    };
+
+    // Find the connection with the specified id and send the playback state data
+    var connectionToTarget = connections.find(connection => connection.peer === id);
+    if (connectionToTarget && connectionToTarget.open) {
+        connectionToTarget.send(data);
+    }
+}
+
+
+
+
+
+function sendMessage(name, message, millis) {
+    var data = {
+        type: 'message',
+        id: myId,
+        name: name,
+        message: message,
+        millis: millis
+    };
+
+    // Loop through all connections and send the message data to each one
+    for (const connection of connections) {
+        if (connection && connection.open) {
+            connection.send(data);
+        }
+    }
+}
+
+function sendFile(bytes, read, millis) {
+    var data = {
+        type: 'file',
+        id: myId,
+        bytes: bytes,
+        read: read,
+        millis: millis
+    };
+
+    // Loop through all connections and send the file data to each one
+    for (const connection of connections) {
+        if (connection && connection.open) {
+            connection.send(data);
+        }
+    }
+}
+

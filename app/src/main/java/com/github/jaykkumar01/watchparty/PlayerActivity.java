@@ -4,7 +4,6 @@ import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -41,7 +40,6 @@ import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
 import com.github.jaykkumar01.watchparty.utils.AutoRotate;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
-import com.github.jaykkumar01.watchparty.utils.Menu;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -77,6 +75,8 @@ public class PlayerActivity extends AppCompatActivity {
     Uri videoUri;
     TextView currentMediaTV,playOffileVideo;
     ConstraintLayout addMediaLayout;
+    private boolean isListenerCommand;
+    ImageView playPause;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +111,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         addMediaLayout = findViewById(R.id.addMediaLayout);
         playerView = findViewById(R.id.player_view);
+        playPause = findViewById(R.id.play_pause);
 
         codeTV = findViewById(R.id.roomCode);
         userNameTV = findViewById(R.id.userName);
@@ -169,6 +170,59 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onToogleDeafen() {
                 toogleDeafen(false);
+            }
+
+            @Override
+            public void onSeekInfo(String id, long positionMs) {
+                isListenerCommand = true;
+                if (player == null){
+                    return;
+                }
+
+                runOnUiThread(() -> {
+
+                    long targetPosition = Math.min(positionMs + 500, player.getDuration());
+                    player.seekTo(targetPosition);
+
+                });
+            }
+
+            @Override
+            public void onPlayPauseInfo(String id, boolean isPlaying) {
+                isListenerCommand = true;
+                if (player == null){
+                    return;
+                }
+                runOnUiThread(() -> {
+                    playAndPause(!isPlaying);
+                });
+            }
+
+            @Override
+            public void onPlaybackStateRequest(String id) {
+                if (player == null){
+                    return;
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        CallService.listener.onSendPlaybackState(id,player.isPlaying(),player.getCurrentPosition());
+                    }
+                });
+            }
+
+            @Override
+            public void onPlaybackStateRecevied(String id, boolean isPlaying, long positionMs) {
+                if (player == null){
+                    return;
+                }
+                runOnUiThread(() -> {
+                    long targetPosition = Math.min(positionMs + 800, player.getDuration());
+                    isListenerCommand = true;
+                    player.seekTo(targetPosition);
+                    isListenerCommand = true;
+                    playAndPause(!isPlaying);
+                });
             }
         };
     }
@@ -240,6 +294,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
+        playerView.setControllerAutoShow(false);
         MediaItem mediaItem = new MediaItem.Builder()
                 .setUri(videoUri)
                 .build();
@@ -254,12 +309,25 @@ public class PlayerActivity extends AppCompatActivity {
         PlayerUtil.addSeekListener(player, new PlayerListener() {
             @Override
             public void onSeek(long positionMs) {
-                Toast.makeText(PlayerActivity.this, ""+positionMs, Toast.LENGTH_SHORT).show();
+                if (isListenerCommand){
+                    isListenerCommand = false;
+                    return;
+                }
+                CallService.listener.onSendSeekInfo(positionMs);
             }
 
             @Override
             public void onIsPlaying(boolean isPlaying) {
-                Toast.makeText(PlayerActivity.this, ""+isPlaying, Toast.LENGTH_SHORT).show();
+                if (isListenerCommand){
+                    isListenerCommand = false;
+                    return;
+                }
+                CallService.listener.onSendPlayPauseInfo(isPlaying);
+            }
+
+            @Override
+            public void onPlayerReady() {
+                CallService.listener.onSendPlaybackStateRequest();
             }
 
 
@@ -268,21 +336,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //listener = null;
-        if (!eventListenerList.isEmpty()){
-            for (EventListenerData listenerData: eventListenerList) {
-                listenerData.getDatabaseReference().removeEventListener(listenerData.getValueEventListener());
-            }
-        }
-        //FirebaseUtils.removeUserData(room.getCode(),room.getUser());
-        if (CallService.listener == null){
-            return;
-        }
-        //CallService.listener.onDisconnect();
-    }
+
 
     public void sendMessage(View view) {
         if (messageET.getText() == null || messageET.getText().toString().isEmpty()){
@@ -373,10 +427,14 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("UseCompatLoadingForDrawables")
+
     public void playAndPause(View view) {
-        ImageView playPause = (ImageView) view;
-        if (player.isPlaying()){
+        playAndPause(player.isPlaying());
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public void playAndPause(boolean isPlaying){
+        if (isPlaying){
             player.pause();
             playPause.setImageDrawable(getDrawable(R.drawable.exo_play));
         }else {
@@ -516,6 +574,7 @@ public class PlayerActivity extends AppCompatActivity {
         addMediaLayout.setVisibility(View.GONE);
         playerView.setVisibility(View.VISIBLE);
         playVideo(videoUri);
+//        CallService.listener.onSendPlaybackStateRequest();
     }
 
 
@@ -532,5 +591,22 @@ public class PlayerActivity extends AppCompatActivity {
         if (playerView != null){
             playerView.setPlayer(null);
         }
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //listener = null;
+        releasePlayer();
+        if (!eventListenerList.isEmpty()){
+            for (EventListenerData listenerData: eventListenerList) {
+                listenerData.getDatabaseReference().removeEventListener(listenerData.getValueEventListener());
+            }
+        }
+        //FirebaseUtils.removeUserData(room.getCode(),room.getUser());
+        if (CallService.listener == null){
+            return;
+        }
+
+        //CallService.listener.onDisconnect();
     }
 }
