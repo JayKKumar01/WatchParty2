@@ -17,4 +17,6 @@ public interface CallServiceListener {
     void onSendPlaybackState(String id, boolean playing, long currentPosition);
 
     void onSendPlaybackStateRequest();
+
+    void onActivityStopInfo();
 }

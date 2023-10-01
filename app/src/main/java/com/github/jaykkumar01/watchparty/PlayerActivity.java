@@ -68,6 +68,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     StyledPlayerView playerView;
     Player player;
+    Player.Listener playerLister;
 
     ConstraintLayout layout1,partyLayout,playerLayout;
     TextView offlineAdd,onlineAdd;
@@ -77,6 +78,7 @@ public class PlayerActivity extends AppCompatActivity {
     ConstraintLayout addMediaLayout;
     private boolean isListenerCommand;
     ImageView playPause;
+    private boolean isFirstSync;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -213,15 +215,24 @@ public class PlayerActivity extends AppCompatActivity {
 
             @Override
             public void onPlaybackStateRecevied(String id, boolean isPlaying, long positionMs) {
+                if (!isFirstSync){
+                    return;
+                }
                 if (player == null){
                     return;
                 }
                 runOnUiThread(() -> {
+                    if (!isFirstSync){
+                        return;
+                    }
+                    isFirstSync = false;
                     long targetPosition = Math.min(positionMs + 800, player.getDuration());
                     isListenerCommand = true;
                     player.seekTo(targetPosition);
                     isListenerCommand = true;
                     playAndPause(!isPlaying);
+                    isListenerCommand = false;
+
                 });
             }
         };
@@ -291,7 +302,7 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     public void playVideo(Uri videoUri) {
-
+        isFirstSync = true;
         player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
         playerView.setControllerAutoShow(false);
@@ -306,7 +317,7 @@ public class PlayerActivity extends AppCompatActivity {
         player.play();
 
 
-        PlayerUtil.addSeekListener(player, new PlayerListener() {
+        playerLister = PlayerUtil.addSeekListener(this,player, new PlayerListener() {
             @Override
             public void onSeek(long positionMs) {
                 if (isListenerCommand){
@@ -314,23 +325,24 @@ public class PlayerActivity extends AppCompatActivity {
                     return;
                 }
                 CallService.listener.onSendSeekInfo(positionMs);
+
             }
 
             @Override
             public void onIsPlaying(boolean isPlaying) {
+                //Toast.makeText(PlayerActivity.this, "isPlaying: "+isPlaying, Toast.LENGTH_SHORT).show();
                 if (isListenerCommand){
                     isListenerCommand = false;
                     return;
                 }
                 CallService.listener.onSendPlayPauseInfo(isPlaying);
+
             }
 
             @Override
             public void onPlayerReady() {
                 CallService.listener.onSendPlaybackStateRequest();
             }
-
-
         });
 
 
@@ -579,6 +591,10 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     public void refreshLayout(View view) {
+        refreshLayout();
+    }
+
+    private void refreshLayout() {
         releasePlayer();
         playerView.setVisibility(View.GONE);
         addMediaLayout.setVisibility(View.VISIBLE);
@@ -586,7 +602,10 @@ public class PlayerActivity extends AppCompatActivity {
 
     private void releasePlayer() {
         if (player != null){
+            player.removeListener(playerLister);
+            playerLister = null;
             player.release();
+            player = null;
         }
         if (playerView != null){
             playerView.setPlayer(null);
@@ -608,5 +627,25 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         //CallService.listener.onDisconnect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (player != null && CallService.listener != null){
+            CallService.listener.onActivityStopInfo();
+        }
+
+        releasePlayer();
+
+
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        refreshLayout();
+        isListenerCommand = false;
     }
 }

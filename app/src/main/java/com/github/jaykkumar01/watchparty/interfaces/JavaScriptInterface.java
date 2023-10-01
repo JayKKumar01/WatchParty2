@@ -108,4 +108,9 @@ public class JavaScriptInterface implements Data{
     public void handlePlaybackState(String id,boolean isPlaying, long positionMs){
         PlayerActivity.listener.onPlaybackStateRecevied(id,isPlaying,positionMs);
     }
+    @JavascriptInterface
+    public void handleActivityStop(String id, long millis){
+        PlayerActivity.listener.onPlayPauseInfo(id,false);
+        Toast.makeText(context, "App Minimized for: "+id+" at "+millis, Toast.LENGTH_SHORT).show();
+    }
 }

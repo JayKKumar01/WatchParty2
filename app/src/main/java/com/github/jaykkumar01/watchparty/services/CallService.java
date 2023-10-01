@@ -261,6 +261,19 @@ public class CallService extends Service implements Data {
                     }
                 });
             }
+
+            @Override
+            public void onActivityStopInfo() {
+                String str = stringToString(
+                        System.currentTimeMillis()
+                );
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callJavaScript("javascript:sendActivityStopInfo("+ str +")");
+                    }
+                });
+            }
         };
     }
 

@@ -66,6 +66,21 @@ function sendPlaybackStateRequest() {
     }
 }
 
+function sendActivityStopInfo(millis) {
+    var data = {
+        type: 'activityStopInfo',
+        id: myId,
+        millis: millis
+    };
+
+    // Loop through all connections and send the activity stop info data to each one
+    for (const connection of connections) {
+        if (connection && connection.open) {
+            connection.send(data);
+        }
+    }
+}
+
 
 function sendPlayPauseInfo(isPlaying) {
     var data = {
@@ -94,9 +109,9 @@ function handleData(data) {
     } else if (data.type === 'playbackStateRequest') {
         Android.handlePlaybackStateRequest(data.id);
     } else if (data.type === 'playbackState') {
-//        Android.handleSeekInfo(data.id, data.positionMs);
-//        Android.handlePlayPauseInfo(data.id, data.isPlaying);
         Android.handlePlaybackState(data.id, data.isPlaying, data.positionMs);
+    } else if (data.type === 'activityStopInfo') {
+        Android.handleActivityStop(data.id, data.millis);
     }
 }
 
