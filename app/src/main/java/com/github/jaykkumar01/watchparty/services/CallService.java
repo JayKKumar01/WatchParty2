@@ -84,8 +84,7 @@ public class CallService extends Service implements Data {
 
         setupWebView();
 
-
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     private void stopRecording(){

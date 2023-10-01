@@ -26,8 +26,8 @@ public class Menu {
     public Menu(Context context) {
         this.context = context;
         this.activity = (Activity) context;
-        this.menu = activity.findViewById(R.id.menu);
-        this.bgMenu = activity.findViewById(R.id.bgMenu);
+//        this.menu = activity.findViewById(R.id.menu);
+//        this.bgMenu = activity.findViewById(R.id.bgMenu);
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")

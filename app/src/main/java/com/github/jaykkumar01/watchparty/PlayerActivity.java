@@ -3,8 +3,13 @@ package com.github.jaykkumar01.watchparty;
 import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
@@ -13,6 +18,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -23,16 +32,21 @@ import com.github.jaykkumar01.watchparty.adapters.ChatAdapter;
 import com.github.jaykkumar01.watchparty.adapters.UserAdapter;
 import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerActivityListener;
+import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
+import com.github.jaykkumar01.watchparty.utils.AutoRotate;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.Menu;
+import com.github.jaykkumar01.watchparty.utils.PickerUtil;
+import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 import java.util.ArrayList;
@@ -54,6 +68,16 @@ public class PlayerActivity extends AppCompatActivity {
     ImageView circle;
     int peerCount;
 
+    StyledPlayerView playerView;
+    Player player;
+
+    ConstraintLayout layout1,partyLayout,playerLayout;
+    TextView offlineAdd,onlineAdd;
+    ConstraintLayout offlineAddLayout, onlineAddLayout;
+    Uri videoUri;
+    TextView currentMediaTV,playOffileVideo;
+    ConstraintLayout addMediaLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +93,25 @@ public class PlayerActivity extends AppCompatActivity {
         if (room == null){
             return;
         }
+
+        AutoRotate.set(this);
         setUpListener();
+
+        layout1 = findViewById(R.id.LYOUT1);
+        partyLayout = findViewById(R.id.partyLayout);
+        playerLayout = findViewById(R.id.playerLayout);
+
+        offlineAdd = findViewById(R.id.offlineBtn);
+        onlineAdd = findViewById(R.id.onlineBtn);
+        offlineAddLayout = findViewById(R.id.offlineMediaLayout);
+        onlineAddLayout = findViewById(R.id.onlineMediaLayout);
+
+        currentMediaTV = findViewById(R.id.currentMediaTxt);
+        playOffileVideo = findViewById(R.id.playOffileVideo);
+
+        addMediaLayout = findViewById(R.id.addMediaLayout);
+        playerView = findViewById(R.id.player_view);
+
         codeTV = findViewById(R.id.roomCode);
         userNameTV = findViewById(R.id.userName);
 
@@ -187,22 +229,19 @@ public class PlayerActivity extends AppCompatActivity {
 
 
 
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        Menu.changeMenu(this, newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
-    }
+//    @Override
+//    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//        Menu.changeMenu(this, newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
+//    }
 
 
-    public void playVideo(View view) {
+    public void playVideo(Uri videoUri) {
 
-
-
-        StyledPlayerView playerView = findViewById(R.id.player_view);
-        ExoPlayer player = new ExoPlayer.Builder(this).build();
+        player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
         MediaItem mediaItem = new MediaItem.Builder()
-                .setUri("/storage/emulated/0/CricHunt/index.mp4")
+                .setUri(videoUri)
                 .build();
         //        player.addListener(new PlayerEventListener());
         player.setMediaItem(mediaItem);
@@ -210,6 +249,22 @@ public class PlayerActivity extends AppCompatActivity {
         player.prepare();
         player.setRepeatMode(REPEAT_MODE_ONE);
         player.play();
+
+
+        PlayerUtil.addSeekListener(player, new PlayerListener() {
+            @Override
+            public void onSeek(long positionMs) {
+                Toast.makeText(PlayerActivity.this, ""+positionMs, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onIsPlaying(boolean isPlaying) {
+                Toast.makeText(PlayerActivity.this, ""+isPlaying, Toast.LENGTH_SHORT).show();
+            }
+
+
+        });
+
 
     }
 
@@ -315,6 +370,167 @@ public class PlayerActivity extends AppCompatActivity {
         finish();
         if (CallService.listener != null){
             CallService.listener.onDisconnect();
+        }
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public void playAndPause(View view) {
+        ImageView playPause = (ImageView) view;
+        if (player.isPlaying()){
+            player.pause();
+            playPause.setImageDrawable(getDrawable(R.drawable.exo_play));
+        }else {
+            player.play();
+            playPause.setImageDrawable(getDrawable(R.drawable.exo_pause));
+        }
+    }
+
+    public void test(View view) {
+//        long ms = player.getCurrentPosition();
+//        ms += 10000;
+//        if (player.getDuration() - 5000 > ms){
+//            player.seekTo(ms);
+//        }
+    }
+
+    public void fullScreen(View view) {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+        else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        ImageView fullscreen = (ImageView) findViewById(R.id.exo_screen);
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            fullscreen.setImageResource(R.drawable.fullscreen_exit);
+            hideLayout(true);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                getWindow().getAttributes().layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            }
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        }
+        else {
+            fullscreen.setImageResource(R.drawable.fullscreen);
+            hideLayout(false);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                getWindow().getAttributes().layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+            }
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        }
+    }
+
+    private void hideLayout(boolean hide) {
+        ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) playerLayout.getLayoutParams();
+        if (hide){
+            layout1.setVisibility(View.GONE);
+            partyLayout.setVisibility(View.GONE);
+            lp.dimensionRatio = "";
+
+        }else{
+            layout1.setVisibility(View.VISIBLE);
+            partyLayout.setVisibility(View.VISIBLE);
+            lp.dimensionRatio = "1.77";
+        }
+
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//                    getWindow().getAttributes().layoutInDisplayCutoutMode =
+//                            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+//                }
+        playerLayout.setLayoutParams(lp);
+    }
+
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public void toogleAddLayout(boolean online) {
+        if(online){
+            offlineAddLayout.setVisibility(View.GONE);
+            onlineAddLayout.setVisibility(View.VISIBLE);
+            offlineAdd.setBackground(getDrawable(R.drawable.bg_not_selected));
+            onlineAdd.setBackground(getDrawable(R.drawable.bg_selected));
+            offlineAdd.setTextColor(getColor(R.color.white_200));
+            onlineAdd.setTextColor(getColor(R.color.theme_color));
+        }else{
+            offlineAddLayout.setVisibility(View.VISIBLE);
+            onlineAddLayout.setVisibility(View.GONE);
+            onlineAdd.setBackground(getDrawable(R.drawable.bg_not_selected));
+            offlineAdd.setBackground(getDrawable(R.drawable.bg_selected));
+            offlineAdd.setTextColor(getColor(R.color.theme_color));
+            onlineAdd.setTextColor(getColor(R.color.white_200));
+        }
+
+    }
+
+
+    public void onlineAddLayout(View view) {
+        toogleAddLayout(true);
+    }
+
+    public void offlineAddLayout(View view) {
+        toogleAddLayout(false);
+    }
+
+    ActivityResultLauncher<Intent> pickVideoLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            if (result.getResultCode() == Activity.RESULT_OK){
+                Intent data = result.getData();
+                if (data != null) {
+                    videoUri = data.getData();
+                    if (videoUri != null) {
+                        currentMediaTV.setText(videoUri.toString());
+                        currentMediaTV.setVisibility(View.VISIBLE);
+                        playOffileVideo.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+
+        }
+    });
+
+    public void selectVideo(View view) {
+        PickerUtil.pickVideo(pickVideoLauncher);
+    }
+
+
+    public void startSyncPlay(View view) {
+        if (videoUri == null){
+            return;
+        }
+        addMediaLayout.setVisibility(View.GONE);
+        playerView.setVisibility(View.VISIBLE);
+        playVideo(videoUri);
+    }
+
+
+    public void refreshLayout(View view) {
+        releasePlayer();
+        playerView.setVisibility(View.GONE);
+        addMediaLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void releasePlayer() {
+        if (player != null){
+            player.release();
+        }
+        if (playerView != null){
+            playerView.setPlayer(null);
         }
     }
 }

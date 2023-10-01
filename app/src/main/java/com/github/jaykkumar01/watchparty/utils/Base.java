@@ -2,14 +2,19 @@ package com.github.jaykkumar01.watchparty.utils;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.jaykkumar01.watchparty.R;
 
 import java.util.Random;
 
-public class Base {
+public class Base{
+
 
     public static boolean isNetworkAvailable(Context context){
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
