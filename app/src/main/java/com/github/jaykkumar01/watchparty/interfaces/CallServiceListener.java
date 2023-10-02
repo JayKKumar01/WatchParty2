@@ -19,4 +19,6 @@ public interface CallServiceListener {
     void onSendPlaybackStateRequest();
 
     void onActivityStopInfo();
+
+    void onSendJoinedPartyAgain();
 }

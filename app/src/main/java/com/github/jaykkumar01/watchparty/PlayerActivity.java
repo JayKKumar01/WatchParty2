@@ -80,7 +80,7 @@ public class PlayerActivity extends AppCompatActivity {
     ImageView playPause;
     private boolean isFirstSync;
     private int count;
-    private boolean isActivityStopped;
+    private boolean isPartyStopped;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -234,7 +234,11 @@ public class PlayerActivity extends AppCompatActivity {
                     isListenerCommand = true;
                     playAndPause(!isPlaying);
                     isListenerCommand = false;
-                    //CallService.listener.onSendJoinedPartyAgain(System.currentTimeMillis());
+                    if (isPartyStopped){
+                        isPartyStopped = false;
+                        CallService.listener.onSendJoinedPartyAgain();
+                    }
+
                 });
             }
         };
@@ -604,6 +608,7 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void refreshLayout() {
+        isPartyStopped = true;
         playerView.setVisibility(View.GONE);
         addMediaLayout.setVisibility(View.VISIBLE);
         releasePlayer();
@@ -642,7 +647,7 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         if (player != null && CallService.listener != null){
-            isActivityStopped = true;
+            isPartyStopped = true;
             CallService.listener.onActivityStopInfo();
         }
         if (playerView != null) {

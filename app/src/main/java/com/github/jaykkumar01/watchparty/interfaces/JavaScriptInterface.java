@@ -109,8 +109,12 @@ public class JavaScriptInterface implements Data{
         PlayerActivity.listener.onPlaybackStateRecevied(id,isPlaying,positionMs);
     }
     @JavascriptInterface
-    public void handleActivityStop(String id, long millis){
+    public void handleActivityStop(String id,String name, long millis){
         PlayerActivity.listener.onPlayPauseInfo(id,false);
-//        Toast.makeText(context, name+" at "+millis, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, name+" left the party!", Toast.LENGTH_SHORT).show();
+    }
+    @JavascriptInterface
+    public void handleJoinedPartyAgain(String id,String name, long millis){
+        Toast.makeText(context, name+" joined the party again!", Toast.LENGTH_SHORT).show();
     }
 }

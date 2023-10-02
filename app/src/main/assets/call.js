@@ -66,10 +66,11 @@ function sendPlaybackStateRequest() {
     }
 }
 
-function sendActivityStopInfo(millis) {
+function sendActivityStopInfo(name, millis) {
     var data = {
         type: 'activityStopInfo',
         id: myId,
+        name: name,
         millis: millis
     };
 
@@ -97,6 +98,21 @@ function sendPlayPauseInfo(isPlaying) {
     }
 }
 
+function sendJoinedPartyAgain(name, millis) {
+    var data = {
+        type: 'joinedPartyAgain',
+        id: myId,
+        name: name,
+        millis: millis
+    };
+
+    // Loop through all connections and send the 'joinedPartyAgain' info to each one
+    for (const connection of connections) {
+        if (connection && connection.open) {
+            connection.send(data);
+        }
+    }
+}
 
 
 
@@ -115,7 +131,9 @@ function handleData(data) {
     } else if (data.type === 'playbackState') {
         Android.handlePlaybackState(data.id, data.isPlaying, data.positionMs);
     } else if (data.type === 'activityStopInfo') {
-        Android.handleActivityStop(data.id, data.millis);
+        Android.handleActivityStop(data.id,data.name, data.millis);
+    } else if (data.type === 'joinedPartyAgain') {
+        Android.handleJoinedPartyAgain(data.id, data.name, data.millis);
     }
 }
 
