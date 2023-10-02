@@ -42,6 +42,7 @@ import com.github.jaykkumar01.watchparty.utils.AutoRotate;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
+import com.github.jaykkumar01.watchparty.utils.TouchGesture;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
@@ -67,7 +68,7 @@ public class PlayerActivity extends AppCompatActivity {
     int peerCount;
 
     StyledPlayerView playerView;
-    Player player;
+    ExoPlayer player;
     PlayerUtil playerUtil;
 
     ConstraintLayout layout1,partyLayout,playerLayout;
@@ -325,6 +326,7 @@ public class PlayerActivity extends AppCompatActivity {
         playerView.onResume();
 
         resetPlayerViews();
+        playerView.setOnTouchListener(new TouchGesture(this,playerView,player));
 
         playerUtil.addSeekListener(player, new PlayerListener() {
             @Override
@@ -608,7 +610,6 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void refreshLayout() {
-        isPartyStopped = true;
         playerView.setVisibility(View.GONE);
         addMediaLayout.setVisibility(View.VISIBLE);
         releasePlayer();
@@ -620,6 +621,11 @@ public class PlayerActivity extends AppCompatActivity {
             player.release();
             player = null;
             playerView.setPlayer(null);
+            if (CallService.listener != null){
+                isPartyStopped = true;
+                CallService.listener.onActivityStopInfo();
+            }
+
         }
     }
     @Override
@@ -646,10 +652,6 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (player != null && CallService.listener != null){
-            isPartyStopped = true;
-            CallService.listener.onActivityStopInfo();
-        }
         if (playerView != null) {
             playerView.onPause();
         }

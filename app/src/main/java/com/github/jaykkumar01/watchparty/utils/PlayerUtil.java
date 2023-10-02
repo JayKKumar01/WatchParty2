@@ -4,19 +4,20 @@ import android.content.Context;
 import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Player;
 
 public class PlayerUtil {
     private Context context;
     private int preState = 2;
-    private Player.Listener listener;
-    private Player player;
+    private ExoPlayer.Listener listener;
+    private ExoPlayer player;
 
     public PlayerUtil(Context context) {
         this.context = context;
     }
 
-    public void addSeekListener(Player player, PlayerListener playerListener){
+    public void addSeekListener(ExoPlayer player, PlayerListener playerListener){
         this.player = player;
         player.addListener(new Player.Listener() {
             @Override
