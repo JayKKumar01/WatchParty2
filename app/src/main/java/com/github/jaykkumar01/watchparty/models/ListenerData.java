@@ -4,13 +4,24 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
+import java.util.Set;
 
 public class ListenerData {
     String message;
     String errorMessage;
     List<UserModel> userList;
+    Set<String> idList;
+
     ValueEventListener valueEventListener;
     DatabaseReference databaseReference;
+
+    public Set<String> getIdList() {
+        return idList;
+    }
+
+    public void setIdList(Set<String> idList) {
+        this.idList = idList;
+    }
 
     public DatabaseReference getDatabaseReference() {
         return databaseReference;

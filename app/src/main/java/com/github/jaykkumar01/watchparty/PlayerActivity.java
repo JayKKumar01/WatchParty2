@@ -4,12 +4,17 @@ import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.PictureInPictureParams;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Rational;
+import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -22,6 +27,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -43,13 +49,17 @@ import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
 import com.github.jaykkumar01.watchparty.utils.TouchGesture;
+import com.github.jaykkumar01.watchparty.utils.TrackDialog;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PlayerActivity extends AppCompatActivity {
     Room room;
@@ -82,6 +92,13 @@ public class PlayerActivity extends AppCompatActivity {
     private boolean isFirstSync;
     private int count;
     private boolean isPartyStopped;
+    private boolean pip;
+    private int playbackSpeed = 2;
+    private ImageView muteUnmute;
+    private ImageView imgCC;
+    TrackDialog trackDialog;
+    private TrackSelector trackSelector;
+    private UserModel userModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +115,7 @@ public class PlayerActivity extends AppCompatActivity {
         if (room == null){
             return;
         }
-
+        userModel = room.getUser();
         AutoRotate.set(this);
         setUpListener();
 
@@ -116,7 +133,10 @@ public class PlayerActivity extends AppCompatActivity {
 
         addMediaLayout = findViewById(R.id.addMediaLayout);
         playerView = findViewById(R.id.player_view);
+        trackSelector = new DefaultTrackSelector(this);
         playPause = findViewById(R.id.play_pause);
+        muteUnmute = findViewById(R.id.exo_mute_unmute);
+        imgCC = findViewById(R.id.exo_caption);
 
         codeTV = findViewById(R.id.roomCode);
         userNameTV = findViewById(R.id.userName);
@@ -269,6 +289,12 @@ public class PlayerActivity extends AppCompatActivity {
         @SuppressLint("NotifyDataSetChanged")
         EventListenerData listenerData = FirebaseUtils.getUserList(room.getCode(), (successful, data) -> {
             if (successful){
+                Set<String> idList = data.getIdList();
+                for (UserModel user : userList){
+                    if (!user.getUserId().equals(userModel.getUserId()) && !idList.contains(user.getUserId())){
+                        Toast.makeText(this, user.getName()+" got disconnected!", Toast.LENGTH_SHORT).show();
+                    }
+                }
                 userList = data.getUserList();
 
                 if (!room.isPeerConnected()){
@@ -311,7 +337,9 @@ public class PlayerActivity extends AppCompatActivity {
     public void playVideo(Uri videoUri) {
         playerUtil = new PlayerUtil(this);
         isFirstSync = true;
-        player = new ExoPlayer.Builder(this).build();
+        player = new ExoPlayer.Builder(this)
+//                .setTrackSelector(trackSelector)
+                .build();
         playerView.setPlayer(player);
         playerView.setControllerAutoShow(false);
         MediaItem mediaItem = new MediaItem.Builder()
@@ -327,6 +355,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         resetPlayerViews();
         playerView.setOnTouchListener(new TouchGesture(this,playerView,player));
+        trackDialog = new TrackDialog(this,player,trackSelector);
 
         playerUtil.addSeekListener(player, new PlayerListener() {
             @Override
@@ -359,9 +388,11 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
-    @SuppressLint("UseCompatLoadingForDrawables")
     private void resetPlayerViews() {
-        playPause.setImageDrawable(getDrawable(R.drawable.exo_pause));
+        playPause.setImageResource(R.drawable.exo_pause);
+        playbackSpeed = 2;
+        muteUnmute.setImageResource(R.drawable.volume_on);
+        imgCC.setImageResource(R.drawable.cc_on);
     }
 
 
@@ -459,15 +490,14 @@ public class PlayerActivity extends AppCompatActivity {
         playAndPause(player.isPlaying());
     }
 
-    @SuppressLint("UseCompatLoadingForDrawables")
     public void playAndPause(boolean isPlaying){
         if (isPlaying){
             player.pause();
             playerUtil.unsetState();
-            playPause.setImageDrawable(getDrawable(R.drawable.exo_play));
+            playPause.setImageResource(R.drawable.exo_play);
         }else {
             player.play();
-            playPause.setImageDrawable(getDrawable(R.drawable.exo_pause));
+            playPause.setImageResource(R.drawable.exo_pause);
         }
     }
 
@@ -628,6 +658,131 @@ public class PlayerActivity extends AppCompatActivity {
 
         }
     }
+
+
+
+    public void changeAudio(View view){
+        trackDialog.changeAudio();
+    }
+    public void changeVideo(View view){
+        trackDialog.changeVideo();
+    }
+    public void changeSub(View view){
+        trackDialog.changeSubtitle();
+    }
+
+    public void lock(View view){
+        findViewById(R.id.ctrlLayout).setVisibility(View.GONE);
+        findViewById(R.id.big_lock).setVisibility(View.VISIBLE);
+    }
+    public void unlock(View view) {
+        view.setVisibility(View.GONE);
+        findViewById(R.id.ctrlLayout).setVisibility(View.VISIBLE);
+    }
+
+    public void cc(View view){
+        if (playerView.getSubtitleView() == null){
+            return;
+        }
+        if(playerView.getSubtitleView().getVisibility() == View.VISIBLE){
+            imgCC.setImageResource(R.drawable.cc_off);
+            playerView.getSubtitleView().setVisibility(View.GONE);
+
+        }
+        else{
+            imgCC.setImageResource(R.drawable.cc_on);
+            playerView.getSubtitleView().setVisibility(View.VISIBLE);
+        }
+    }
+    public void muteUnmute(View view){
+        if(player == null){
+            return;
+        }
+        if(player.getVolume() == 0f){
+            muteUnmute.setImageResource(R.drawable.volume_on);
+            player.setVolume(1f);
+        }
+        else{
+            muteUnmute.setImageResource(R.drawable.volume_off);
+            player.setVolume(0f);
+        }
+    }
+
+    public void enterPIP(View view){
+        Display d = getWindowManager().getDefaultDisplay();
+        Point p = new Point();
+        d.getSize(p);
+        Rational ratio = new Rational(16,9);
+        //ratio = new Rational(dimension(vidUri)[0],dimension(vidUri)[1]);
+        PictureInPictureParams.Builder pipBuilder = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            playerView.hideController();
+            pipBuilder = new PictureInPictureParams.Builder();
+            pipBuilder.setAspectRatio(ratio).build();
+            enterPictureInPictureMode(pipBuilder.build());
+            pip = true;
+        }
+
+    }
+
+    public void changeSpeed(View view){
+        if (player == null){
+            return;
+        }
+        AlertDialog.Builder playbackDialog = new AlertDialog.Builder(this);
+        playbackDialog.setTitle("Change Playback Speed").setPositiveButton("OK",null);
+        String[] items = {"0.25x","0.5x","1x (normal)","1.25x","1.5x","2x"};
+        playbackDialog.setSingleChoiceItems(items, playbackSpeed, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                playbackSpeed = i;
+                switch (i){
+                    case 0:
+                        player.setPlaybackParameters(new PlaybackParameters(.25f));
+                        break;
+                    case 1:
+                        player.setPlaybackParameters(new PlaybackParameters(.5f));
+                        break;
+                    case 2:
+                        player.setPlaybackParameters(new PlaybackParameters(1f));
+                        break;
+                    case 3:
+                        player.setPlaybackParameters(new PlaybackParameters(1.25f));
+                        break;
+                    case 4:
+                        player.setPlaybackParameters(new PlaybackParameters(1.5f));
+                        break;
+                    case 5:
+                        player.setPlaybackParameters(new PlaybackParameters(2f));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+        playbackDialog.show();
+
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -641,17 +796,15 @@ public class PlayerActivity extends AppCompatActivity {
                 listenerData.getDatabaseReference().removeEventListener(listenerData.getValueEventListener());
             }
         }
-        //FirebaseUtils.removeUserData(room.getCode(),room.getUser());
-        if (CallService.listener == null){
-            return;
-        }
-
-        //CallService.listener.onDisconnect();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        if (pip){
+            endCall(null);
+            return;
+        }
         if (playerView != null) {
             playerView.onPause();
         }
@@ -665,6 +818,10 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        if (pip){
+            pip = false;
+            return;
+        }
         refreshLayout();
     }
 }

@@ -16,7 +16,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class FirebaseUtils {
     public static final String APP_INFO = "APP_INFO";
@@ -61,14 +64,17 @@ public class FirebaseUtils {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
                 List<UserModel> list = null;
+                Set<String> idList = null;
                 ListenerData data = new ListenerData();
                 if (dataSnapshot.exists()) {
                     // Iterate through the children (users) and retrieve their data
                     list = new ArrayList<>();
+                    idList = new HashSet<>();
                     for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                         UserModel user = userSnapshot.getValue(UserModel.class);
                         if (user != null) {
                             list.add(user);
+                            idList.add(user.getUserId());
                         }
                     }
                     if (list.isEmpty()){
@@ -79,6 +85,7 @@ public class FirebaseUtils {
                 }
 
                 data.setUserList(list);
+                data.setIdList(idList);
                 data.setValueEventListener(this);
                 listener.onComplete(dataSnapshot.exists(),data);
             }
