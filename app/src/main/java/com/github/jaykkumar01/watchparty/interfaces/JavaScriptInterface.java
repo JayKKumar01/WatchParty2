@@ -111,6 +111,6 @@ public class JavaScriptInterface implements Data{
     @JavascriptInterface
     public void handleActivityStop(String id, long millis){
         PlayerActivity.listener.onPlayPauseInfo(id,false);
-        Toast.makeText(context, "App Minimized for: "+id+" at "+millis, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(context, name+" at "+millis, Toast.LENGTH_SHORT).show();
     }
 }

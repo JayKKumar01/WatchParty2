@@ -7,9 +7,17 @@ import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
 import com.google.android.exoplayer2.Player;
 
 public class PlayerUtil {
-    private static int preState = 2;
+    private Context context;
+    private int preState = 2;
+    private Player.Listener listener;
+    private Player player;
 
-    public static Player.Listener addSeekListener(Context context,Player player, PlayerListener playerListener){
+    public PlayerUtil(Context context) {
+        this.context = context;
+    }
+
+    public void addSeekListener(Player player, PlayerListener playerListener){
+        this.player = player;
         player.addListener(new Player.Listener() {
             @Override
             public void onPlaybackStateChanged(int playbackState) {
@@ -18,7 +26,7 @@ public class PlayerUtil {
                 playerListener.onPlayerReady();
             }
         });
-        Player.Listener listener = new Player.Listener() {
+        listener = new Player.Listener() {
             @Override
             public void onPositionDiscontinuity(Player.PositionInfo oldPosition, Player.PositionInfo newPosition, int reason) {
                 Player.Listener.super.onPositionDiscontinuity(oldPosition, newPosition, reason);
@@ -28,16 +36,25 @@ public class PlayerUtil {
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 Player.Listener.super.onIsPlayingChanged(isPlaying);
-                int temp = preState;
+                //int temp = preState;
                 if (player.getPlaybackState() != Player.STATE_BUFFERING && preState != 2){
                     playerListener.onIsPlaying(isPlaying);
                 }
                 preState = player.getPlaybackState();
-                Toast.makeText(context, "prestate: "+temp+" "+preState, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "prestate: "+temp+" "+preState, Toast.LENGTH_SHORT).show();
 
             }
         };
         player.addListener(listener);
-        return listener;
+    }
+
+    public void unsetState(){
+        preState = -1;
+    }
+
+    public void removeListener(){
+        if (player != null && listener != null){
+            player.removeListener(listener);
+        }
     }
 }

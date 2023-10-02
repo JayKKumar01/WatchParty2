@@ -97,6 +97,10 @@ function sendPlayPauseInfo(isPlaying) {
     }
 }
 
+
+
+
+
 function handleData(data) {
     if (data.type === 'message') {
         Android.showMessage(data.id, data.name, data.message, data.millis);
