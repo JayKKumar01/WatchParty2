@@ -14,6 +14,15 @@ public class ListenerData {
 
     ValueEventListener valueEventListener;
     DatabaseReference databaseReference;
+    OnlineVideo onlineVideo;
+
+    public OnlineVideo getOnlineVideo() {
+        return onlineVideo;
+    }
+
+    public void setOnlineVideo(OnlineVideo onlineVideo) {
+        this.onlineVideo = onlineVideo;
+    }
 
     public Set<String> getIdList() {
         return idList;

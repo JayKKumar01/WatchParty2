@@ -6,6 +6,7 @@ import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
 import com.github.jaykkumar01.watchparty.models.AppInfo;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
 import com.github.jaykkumar01.watchparty.models.ListenerData;
+import com.github.jaykkumar01.watchparty.models.OnlineVideo;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -22,17 +23,13 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class FirebaseUtils {
-    public static final String APP_INFO = "APP_INFO";
     public static final String MEDIA_CALL = "MEDIA_CALL";
+    private static final String USERS = "users";
+    private static final String ONLINE_VIDEO = "online_video";
 
     private static DatabaseReference getDatabaseReference() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         return database.getReference().child(MEDIA_CALL);
-    }
-
-    public static void writeAppInfo(AppInfo appInfo){
-        DatabaseReference reference = getDatabaseReference().child(APP_INFO);
-        reference.setValue(appInfo);
     }
 
     public static void checkCodeExists(String code, FirebaseListener valueEventListener) {
@@ -48,12 +45,6 @@ public class FirebaseUtils {
                 valueEventListener.onComplete(false,new ListenerData("Something went wrong!"));
             }
         });
-    }
-    public static void writeUserData(String path, UserModel model) {
-        DatabaseReference reference = getDatabaseReference().child(path);
-        List<UserModel> list = new ArrayList<>();
-        list.add(model);
-        reference.setValue(list);
     }
 
     public static EventListenerData getUserList(String code, FirebaseListener listener) {
@@ -95,7 +86,7 @@ public class FirebaseUtils {
                 listener.onComplete(false,new ListenerData("Something went wrong!"));
             }
         };
-        DatabaseReference databaseReference = getDatabaseReference().child(code);
+        DatabaseReference databaseReference = getDatabaseReference().child(code).child(USERS);
         databaseReference.addValueEventListener(eventListener);
         EventListenerData data = new EventListenerData();
         data.setDatabaseReference(databaseReference);
@@ -105,7 +96,7 @@ public class FirebaseUtils {
     public static void updateUserData(String path, UserModel userModel, FirebaseListener listener) {
         DatabaseReference databaseReference = getDatabaseReference().child(path);
         String userId = userModel.getUserId();
-        databaseReference.child(userId).setValue(userModel).addOnCompleteListener(new OnCompleteListener<Void>() {
+        databaseReference.child(USERS).child(userId).setValue(userModel).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (listener == null){
@@ -116,6 +107,60 @@ public class FirebaseUtils {
         });
 
     }
+
+    public static EventListenerData getOnlineVideo(String code, FirebaseListener listener) {
+        DatabaseReference databaseReference = getDatabaseReference().child(code).child(ONLINE_VIDEO);
+
+        ValueEventListener eventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                ListenerData data = new ListenerData();
+                if (dataSnapshot.exists()) {
+                    OnlineVideo onlineVideo = dataSnapshot.getValue(OnlineVideo.class);
+                    if (onlineVideo != null) {
+                        data.setOnlineVideo(onlineVideo);
+                        listener.onComplete(true, data);
+                    } else {
+                        data.setErrorMessage("Failed to parse OnlineVideo data");
+                        listener.onComplete(false, data);
+                    }
+                } else {
+                    data.setErrorMessage("OnlineVideo not found");
+                    listener.onComplete(false, data);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                ListenerData data = new ListenerData("Something went wrong!");
+                listener.onComplete(false, data);
+            }
+        };
+
+        databaseReference.addValueEventListener(eventListener);
+
+        EventListenerData eventListenerData = new EventListenerData();
+        eventListenerData.setDatabaseReference(databaseReference);
+        eventListenerData.setValueEventListener(eventListener);
+        return eventListenerData;
+    }
+
+
+
+    public static void updateOnlineVideo(String path, OnlineVideo onlineVideo, FirebaseListener listener) {
+        DatabaseReference databaseReference = getDatabaseReference().child(path);
+        databaseReference.child(ONLINE_VIDEO).setValue(onlineVideo).addOnCompleteListener(task -> {
+            if (listener == null) {
+                return;
+            }
+            if (task.isSuccessful()) {
+                listener.onComplete(true, new ListenerData("Online video added successfully"));
+            } else {
+                listener.onComplete(false, new ListenerData("Failed to add online video"));
+            }
+        });
+    }
+
 
 
 

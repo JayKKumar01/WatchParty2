@@ -368,12 +368,109 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:id="@+id/onlineMediaLayout"
-                android:background="@color/theme_color"
                 android:visibility="gone"
+                android:background="@color/discord_bg"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/offlineBtn">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Current Url: https://youtube.com?id=someurl"
+                    android:visibility="gone"
+                    android:id="@+id/currentOnlineVideoTxt"
+                    app:layout_constraintHorizontal_bias="0"
+                    app:layout_constraintVertical_bias="0"
+                    android:padding="5dp"
+                    android:textSize="11sp"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/istok_web_regular"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutJoinYouTube"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintWidth_percent=".8"
+                    android:background="@drawable/layout_border"
+                    app:layout_constraintTop_toBottomOf="@id/currentOnlineVideoTxt"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toTopOf="@id/btnJoinYouTube"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        android:layout_marginBottom="10dp">
+
+
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Enter YouTube Url (Optional)"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintLeft_toLeftOf="parent"
+                            app:layout_constraintRight_toRightOf="parent"
+                            android:textColorHint="@color/white_100"
+                            app:boxStrokeColor="@color/white"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/youtubeUrlET"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/white"
+                                android:textSize="11sp"
+                                android:inputType="text"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+
+
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnCreateYouTube"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Create"
+                        android:onClick="createYouTubeUrl"
+                        android:textSize="13sp"
+                        android:background="@drawable/button_bg"
+                        android:textColor="@color/theme_color"
+                        app:layout_constraintWidth_percent=".49"
+                        app:layout_constraintHorizontal_bias="0"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="1"
+                        app:layout_constraintBottom_toBottomOf="parent" />
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnJoinYouTube"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Join"
+                        android:textSize="13sp"
+                        android:background="@drawable/button_bg"
+                        android:textColor="@color/theme_color"
+                        app:layout_constraintWidth_percent=".49"
+                        app:layout_constraintHorizontal_bias="1"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="1"
+                        app:layout_constraintBottom_toBottomOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

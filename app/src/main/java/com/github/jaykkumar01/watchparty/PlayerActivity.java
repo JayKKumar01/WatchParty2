@@ -51,10 +51,13 @@ import com.github.jaykkumar01.watchparty.adapters.ChatAdapter;
 import com.github.jaykkumar01.watchparty.adapters.UserAdapter;
 import com.github.jaykkumar01.watchparty.assets.TrackSelectionDialog;
 import com.github.jaykkumar01.watchparty.enums.RoomType;
+import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerActivityListener;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
+import com.github.jaykkumar01.watchparty.models.ListenerData;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
+import com.github.jaykkumar01.watchparty.models.OnlineVideo;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
@@ -65,6 +68,8 @@ import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
 import com.github.jaykkumar01.watchparty.utils.TouchGesture;
+import com.google.android.material.textfield.TextInputEditText;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -112,6 +117,9 @@ public class PlayerActivity extends AppCompatActivity {
     private ImageView liveClose;
     private TextView userCount;
     private boolean isShowingTrackSelectionDialog;
+    private TextView currentOnlineVideoTxt;
+    private TextInputEditText youtubeUrlET;
+    private AppCompatButton joinYouTube,createYouTube;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -147,6 +155,14 @@ public class PlayerActivity extends AppCompatActivity {
         currentMediaTV = findViewById(R.id.currentMediaTxt);
         playOffileVideo = findViewById(R.id.playOffileVideo);
 
+        currentOnlineVideoTxt = findViewById(R.id.currentOnlineVideoTxt);
+        youtubeUrlET = findViewById(R.id.youtubeUrlET);
+        joinYouTube = findViewById(R.id.btnJoinYouTube);
+        createYouTube = findViewById(R.id.btnCreateYouTube);
+
+        setUpOnlineVideo();
+
+
         addMediaLayout = findViewById(R.id.addMediaLayout);
         playerView = findViewById(R.id.player_view);
         trackSelector = new DefaultTrackSelector(this);
@@ -180,6 +196,40 @@ public class PlayerActivity extends AppCompatActivity {
             setDeafenImage();
         }
 
+    }
+
+
+    public void createYouTubeUrl(View view) {
+        if (youtubeUrlET.getText() == null || youtubeUrlET.getText().toString().isEmpty()) {
+            Toast.makeText(this, "Please Enter Url", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String url = youtubeUrlET.getText().toString();
+        OnlineVideo onlineVideo = new OnlineVideo(userModel.getUserId(),userModel.getName(),url);
+        FirebaseUtils.updateOnlineVideo(room.getCode(), onlineVideo, new FirebaseListener() {
+            @Override
+            public void onComplete(boolean successful, ListenerData data) {
+                Toast.makeText(PlayerActivity.this, "YouTube url created!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void setUpOnlineVideo() {
+        EventListenerData listenerData = FirebaseUtils.getOnlineVideo(room.getCode(), new FirebaseListener() {
+
+            @Override
+            public void onComplete(boolean successful, ListenerData data) {
+                if (successful){
+                    currentOnlineVideoTxt.setVisibility(View.VISIBLE);
+                    currentOnlineVideoTxt.setText("Current Url: "+data.getOnlineVideo().getYoutubeUrl());
+                }else{
+                    currentOnlineVideoTxt.setVisibility(View.GONE);
+                }
+            }
+        });
+        eventListenerList.add(listenerData);
     }
 
     private void setUpListener() {
@@ -874,4 +924,6 @@ public class PlayerActivity extends AppCompatActivity {
         showExitPartyDialog();
 //        super.onBackPressed();
     }
+
+
 }
