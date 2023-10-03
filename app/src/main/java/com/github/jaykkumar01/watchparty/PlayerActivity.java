@@ -29,6 +29,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.WindowDecorActionBar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,6 +46,7 @@ import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
 import com.github.jaykkumar01.watchparty.utils.AutoRotate;
+import com.github.jaykkumar01.watchparty.utils.ChatUtil;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
@@ -99,17 +101,15 @@ public class PlayerActivity extends AppCompatActivity {
     TrackDialog trackDialog;
     private TrackSelector trackSelector;
     private UserModel userModel;
+    private ChatUtil chatUtil;
+    private ImageView imgChat;
+    private ImageView liveClose;
+    private TextView userCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//            getWindow().getAttributes().layoutInDisplayCutoutMode =
-//                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-//        }
         setContentView(R.layout.activity_player);
         room = (Room) getIntent().getSerializableExtra(getString(R.string.room));
         if (room == null){
@@ -122,6 +122,14 @@ public class PlayerActivity extends AppCompatActivity {
         layout1 = findViewById(R.id.LYOUT1);
         partyLayout = findViewById(R.id.partyLayout);
         playerLayout = findViewById(R.id.playerLayout);
+        chatUtil = new ChatUtil(this);
+        chatUtil.setPlayerLayout(playerLayout);
+        chatUtil.setPartyLayout(partyLayout);
+        chatUtil.setParentLayout((ConstraintLayout) findViewById(R.id.rootLayout));
+        imgChat = findViewById(R.id.exo_chat);
+        chatUtil.setImgChat(imgChat);
+        liveClose = findViewById(R.id.live_close);
+        chatUtil.setLiveClose(liveClose);
 
         offlineAdd = findViewById(R.id.offlineBtn);
         onlineAdd = findViewById(R.id.onlineBtn);
@@ -144,6 +152,7 @@ public class PlayerActivity extends AppCompatActivity {
         chatLayout = findViewById(R.id.chatLayout);
         peerLayout = findViewById(R.id.peerLayout);
         circle = findViewById(R.id.circle);
+        userCount = findViewById(R.id.userCount);
 
         micBtn = findViewById(R.id.micBtn);
         deafenBtn = findViewById(R.id.deafenBtn);
@@ -286,7 +295,7 @@ public class PlayerActivity extends AppCompatActivity {
         userListRV.setAdapter(userAdapter);
 
 
-        @SuppressLint("NotifyDataSetChanged")
+        @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
         EventListenerData listenerData = FirebaseUtils.getUserList(room.getCode(), (successful, data) -> {
             if (successful){
                 Set<String> idList = data.getIdList();
@@ -310,6 +319,7 @@ public class PlayerActivity extends AppCompatActivity {
                     circle.setVisibility(View.VISIBLE);
                 }
                 peerCount = userList.size();
+                userCount.setText("User Count: "+peerCount);
                 userAdapter.setList(userList);
                 userAdapter.notifyDataSetChanged();
 
@@ -354,7 +364,7 @@ public class PlayerActivity extends AppCompatActivity {
         playerView.onResume();
 
         resetPlayerViews();
-        playerView.setOnTouchListener(new TouchGesture(this,playerView,player));
+        playerView.setOnTouchListener(new TouchGesture(this, playerView, player));
         trackDialog = new TrackDialog(this,player,trackSelector);
 
         playerUtil.addSeekListener(player, new PlayerListener() {
@@ -534,6 +544,7 @@ public class PlayerActivity extends AppCompatActivity {
             }
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            chatUtil.activate(false);
         }
         else {
             fullscreen.setImageResource(R.drawable.fullscreen);
@@ -545,6 +556,7 @@ public class PlayerActivity extends AppCompatActivity {
                         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
             }
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            chatUtil.disable(false);
         }
     }
 
@@ -560,16 +572,24 @@ public class PlayerActivity extends AppCompatActivity {
             partyLayout.setVisibility(View.VISIBLE);
             lp.dimensionRatio = "1.77";
         }
-
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-//                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//                    getWindow().getAttributes().layoutInDisplayCutoutMode =
-//                            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-//                }
         playerLayout.setLayoutParams(lp);
     }
 
+    public void chat(View view) {
+
+        if (partyLayout.getVisibility() != View.VISIBLE){
+            chatUtil.activate(true);
+        }else{
+            chatUtil.disable(true);
+        }
+
+    }
+
+    public void closeLive(View view) {
+        if (chatUtil != null){
+            chatUtil.disable(true);
+        }
+    }
 
     @SuppressLint("UseCompatLoadingForDrawables")
     public void toogleAddLayout(boolean online) {
@@ -824,4 +844,7 @@ public class PlayerActivity extends AppCompatActivity {
         }
         refreshLayout();
     }
+
+
+
 }

@@ -1,6 +1,7 @@
 package com.github.jaykkumar01.watchparty.utils;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -22,6 +23,7 @@ public class TouchGesture implements View.OnTouchListener{
         this.player = player;
         PINCH_ZOOM = new ScaleGestureDetector(context,new PinchZoom(playerView));
         TAP_TAP = new GestureDetector(context,new TapTap(context,playerView,player));
+
 
     }
 

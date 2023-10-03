@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/theme_bg"
+    android:id="@+id/rootLayout"
     tools:context=".PlayerActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -68,38 +69,9 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/peers"
+            app:layout_constraintRight_toLeftOf="@id/refresh"
             />
-        <ImageView
-            android:layout_width="35dp"
-            android:layout_height="0dp"
-            android:onClick="toogleLayout"
-            app:layout_constraintDimensionRatio="1"
-            android:background="@drawable/bg_peer"
-            android:src="@drawable/baseline_chat_bubble_24"
-            android:padding="8dp"
-            android:layout_marginEnd="25dp"
-            android:id="@+id/peers"
-            app:layout_constraintHorizontal_bias="1"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/refresh"/>
-        <ImageView
-            android:layout_width="10dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="0dp"
-            android:background="@drawable/bg_peer"
-            app:layout_constraintDimensionRatio="1"
-            app:layout_constraintVertical_bias="0"
-            app:layout_constraintHorizontal_bias="1"
-            android:src="@drawable/baseline_circle_24"
-            android:id="@+id/circle"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@id/peers"
-            app:layout_constraintLeft_toLeftOf="@id/peers"
-            app:layout_constraintTop_toTopOf="@id/peers"
-            app:layout_constraintRight_toRightOf="@id/peers"/>
+
         <ImageView
             android:layout_width="35dp"
             android:layout_height="0dp"
@@ -124,7 +96,9 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintVertical_bias="0"
+        app:layout_constraintHorizontal_bias="0"
         app:layout_constraintDimensionRatio="1.77"
+        app:layout_constraintWidth_percent="1"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/LYOUT1"
@@ -406,24 +380,15 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/playBTN"
-            app:layout_constraintHorizontal_bias="0"
-            android:text="Play"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:visibility="gone"
-            android:onClick="playVideo"
-            android:textColor="@color/white"
-            android:background="@color/theme_color"
-            android:textSize="13sp"
-            android:padding="5dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:background="@color/white_200"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -434,10 +399,112 @@
         android:id="@+id/partyLayout"
         android:visibility="visible"
         app:layout_constraintVertical_bias="1"
+        app:layout_constraintHorizontal_bias="1"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/playerLayout"
         app:layout_constraintBottom_toBottomOf="parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:id="@+id/livechat"
+            android:background="@color/theme_color"
+            app:layout_constraintVertical_bias="0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Live Feed"
+                android:id="@+id/live_feed"
+                android:fontFamily="serif"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:padding="5dp"
+                android:textColor="@color/white"
+                app:layout_constraintHorizontal_bias="0"
+                app:layout_constraintVertical_bias="0"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="User Count: 1"
+                android:id="@+id/userCount"
+                android:fontFamily="@font/istok_web_regular"
+                android:textSize="11sp"
+                android:paddingStart="5dp"
+                android:textColor="#065981"
+                app:layout_constraintHorizontal_bias="0"
+                app:layout_constraintVertical_bias="0"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/live_feed"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+            <ImageView
+                android:layout_width="35dp"
+                android:layout_height="0dp"
+                android:onClick="toogleLayout"
+                app:layout_constraintDimensionRatio="1"
+                android:background="@drawable/bg_peer"
+                android:src="@drawable/baseline_chat_bubble_24"
+                android:padding="8dp"
+                android:layout_marginEnd="25dp"
+                android:id="@+id/live_toogle"
+                app:layout_constraintHorizontal_bias="1"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/live_close"/>
+            <ImageView
+                android:layout_width="10dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="0dp"
+                android:background="@drawable/bg_peer"
+                app:layout_constraintDimensionRatio="1"
+                app:layout_constraintVertical_bias="0"
+                app:layout_constraintHorizontal_bias="1"
+                android:src="@drawable/baseline_circle_24"
+                android:id="@+id/circle"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@id/live_toogle"
+                app:layout_constraintLeft_toLeftOf="@id/live_toogle"
+                app:layout_constraintTop_toTopOf="@id/live_toogle"
+                app:layout_constraintRight_toRightOf="@id/live_toogle"/>
+            <ImageView
+                android:layout_width="35dp"
+                android:layout_height="0dp"
+                app:layout_constraintDimensionRatio="1"
+                android:background="@drawable/bg_peer"
+                android:src="@drawable/baseline_close_24"
+                android:padding="8dp"
+                android:layout_marginEnd="25dp"
+                android:id="@+id/live_close"
+                android:onClick="closeLive"
+                android:visibility="gone"
+                app:layout_constraintHorizontal_bias="1"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toRightOf="parent"/>
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:background="@color/grey"
+                app:layout_constraintVertical_bias="1"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -445,7 +512,7 @@
             android:visibility="visible"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/livechat"
             app:layout_constraintBottom_toBottomOf="parent">
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewUsers"
@@ -528,7 +595,7 @@
             android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/livechat"
             app:layout_constraintBottom_toBottomOf="parent">
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewChats"

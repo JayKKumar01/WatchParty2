@@ -11,6 +11,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -20,7 +21,6 @@ import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 @SuppressLint("UnsafeOptInUsageError")
  public class TapTap extends GestureDetector.SimpleOnGestureListener {
-    private static final int SCREEN_WIDTH = Resources.getSystem().getDisplayMetrics().widthPixels;
     private static final int TIMEOUT = 600;
     private final Context context;
     private final Activity activity;
@@ -70,9 +70,10 @@ import com.google.android.exoplayer2.ui.StyledPlayerView;
 
     @Override
     public boolean onDoubleTap(@NonNull MotionEvent e) {
+
         int seekAmount = 10 * 1000; // Seek amount in milliseconds
 
-        if (e.getX() < (double) SCREEN_WIDTH / 2) {
+        if (e.getX() < (double) playerView.getWidth() / 2) {
             seek(-seekAmount, lar1, lar2, lar3, leftTXT, leftBox);
         } else {
             seek(seekAmount, ar1, ar2, ar3, rightTXT, rightBox);
