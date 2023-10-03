@@ -4,6 +4,7 @@ import static androidx.media3.common.Player.REPEAT_MODE_ONE;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.PictureInPictureParams;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,8 +16,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Rational;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,7 +33,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDialog;
 import androidx.appcompat.app.WindowDecorActionBar;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackParameters;
@@ -108,6 +113,7 @@ public class PlayerActivity extends AppCompatActivity {
     private TextView userCount;
     private boolean isShowingTrackSelectionDialog;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -848,6 +854,21 @@ public class PlayerActivity extends AppCompatActivity {
         refreshLayout();
     }
 
-
-
+    @SuppressLint("MissingInflatedId")
+    private void showExitPartyDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getString(R.string.do_you_want_to_exit_the_party));
+        builder.setPositiveButton("EXIT", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                endCall(null);
+            }
+        });
+        builder.show();
+    }
+    @Override
+    public void onBackPressed() {
+        showExitPartyDialog();
+//        super.onBackPressed();
+    }
 }
