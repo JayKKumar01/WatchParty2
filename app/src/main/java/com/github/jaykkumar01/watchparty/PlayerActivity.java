@@ -540,8 +540,10 @@ public class PlayerActivity extends AppCompatActivity {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         ImageView fullscreen = (ImageView) findViewById(R.id.exo_screen);
+        View decorView = getWindow().getDecorView();
 
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
             fullscreen.setImageResource(R.drawable.fullscreen_exit);
             hideLayout(true);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -555,6 +557,7 @@ public class PlayerActivity extends AppCompatActivity {
             chatUtil.activate(false);
         }
         else {
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             fullscreen.setImageResource(R.drawable.fullscreen);
             hideLayout(false);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);

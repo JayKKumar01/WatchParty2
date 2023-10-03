@@ -55,12 +55,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@android:string/cancel"
+        android:textColor="@color/theme_color"
         style="?android:attr/borderlessButtonStyle"/>
 
     <Button
         android:id="@+id/track_selection_dialog_ok_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@color/theme_color"
         android:text="@android:string/ok"
         style="?android:attr/borderlessButtonStyle"/>
 
