@@ -3,9 +3,10 @@ package com.github.jaykkumar01.watchparty.utils;
 import android.content.Context;
 import android.widget.Toast;
 
+import androidx.media3.common.Player;
+import androidx.media3.exoplayer.ExoPlayer;
+
 import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.Player;
 
 public class PlayerUtil {
     private Context context;

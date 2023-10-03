@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Watch Party</string>
     <string name="room">room</string>
     <string name="_06d">%06d</string>

@@ -1,23 +1,22 @@
 package com.github.jaykkumar01.watchparty.utils;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ui.StyledPlayerView;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 
 public class TouchGesture implements View.OnTouchListener{
     private final ScaleGestureDetector PINCH_ZOOM;
     private final GestureDetector TAP_TAP;
     Context context;
-    StyledPlayerView playerView;
+    PlayerView playerView;
     ExoPlayer player;
 
-    public TouchGesture(Context context, StyledPlayerView playerView, ExoPlayer player) {
+    public TouchGesture(Context context, PlayerView playerView, ExoPlayer player) {
         this.context = context;
         this.playerView = playerView;
         this.player = player;

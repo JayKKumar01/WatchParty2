@@ -3,14 +3,14 @@ package com.github.jaykkumar01.watchparty.utils;
 import android.annotation.SuppressLint;
 import android.view.ScaleGestureDetector;
 
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.StyledPlayerView;
+import androidx.media3.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.PlayerView;
 
 public class PinchZoom implements ScaleGestureDetector.OnScaleGestureListener {
-    StyledPlayerView playerView;
+    PlayerView playerView;
     private float x = 0f;
 
-    public PinchZoom(StyledPlayerView playerView) {
+    public PinchZoom(PlayerView playerView) {
         this.playerView = playerView;
     }
 

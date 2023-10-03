@@ -5,19 +5,17 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Handler;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 
 import com.github.jaykkumar01.watchparty.R;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 @SuppressLint("UnsafeOptInUsageError")
  public class TapTap extends GestureDetector.SimpleOnGestureListener {
@@ -25,7 +23,7 @@ import com.google.android.exoplayer2.ui.StyledPlayerView;
     private final Context context;
     private final Activity activity;
     private final ExoPlayer player;
-    private final StyledPlayerView playerView;
+    private final PlayerView playerView;
     View ar1,ar2,ar3,lar1,lar2,lar3,leftBox,rightBox;
     TextView rightTXT,leftTXT;
     public static int seekVal = 0;
@@ -35,7 +33,7 @@ import com.google.android.exoplayer2.ui.StyledPlayerView;
     Handler handler = new Handler();
     private static int prevSide = 0;
 
-    public TapTap(Context context, StyledPlayerView playerView, ExoPlayer player) {
+    public TapTap(Context context, PlayerView playerView, ExoPlayer player) {
         this.context = context;
         activity = (Activity)context;
         this.playerView = playerView;

@@ -1,6 +1,6 @@
 package com.github.jaykkumar01.watchparty;
 
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
+import static androidx.media3.common.Player.REPEAT_MODE_ONE;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -27,15 +27,24 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.WindowDecorActionBar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.exoplayer.trackselection.TrackSelector;
+import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.jaykkumar01.watchparty.adapters.ChatAdapter;
 import com.github.jaykkumar01.watchparty.adapters.UserAdapter;
+import com.github.jaykkumar01.watchparty.assets.TrackSelectionDialog;
 import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerActivityListener;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
@@ -51,18 +60,11 @@ import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
 import com.github.jaykkumar01.watchparty.utils.TouchGesture;
-import com.github.jaykkumar01.watchparty.utils.TrackDialog;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.ui.StyledPlayerView;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+@OptIn(markerClass = UnstableApi.class)
 public class PlayerActivity extends AppCompatActivity {
     Room room;
     TextView codeTV,userNameTV;
@@ -79,7 +81,7 @@ public class PlayerActivity extends AppCompatActivity {
     ImageView circle;
     int peerCount;
 
-    StyledPlayerView playerView;
+    PlayerView playerView;
     ExoPlayer player;
     PlayerUtil playerUtil;
 
@@ -98,13 +100,13 @@ public class PlayerActivity extends AppCompatActivity {
     private int playbackSpeed = 2;
     private ImageView muteUnmute;
     private ImageView imgCC;
-    TrackDialog trackDialog;
     private TrackSelector trackSelector;
     private UserModel userModel;
     private ChatUtil chatUtil;
     private ImageView imgChat;
     private ImageView liveClose;
     private TextView userCount;
+    private boolean isShowingTrackSelectionDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -344,6 +346,7 @@ public class PlayerActivity extends AppCompatActivity {
 //    }
 
 
+    @OptIn(markerClass = UnstableApi.class)
     public void playVideo(Uri videoUri) {
         playerUtil = new PlayerUtil(this);
         isFirstSync = true;
@@ -365,7 +368,6 @@ public class PlayerActivity extends AppCompatActivity {
 
         resetPlayerViews();
         playerView.setOnTouchListener(new TouchGesture(this, playerView, player));
-        trackDialog = new TrackDialog(this,player,trackSelector);
 
         playerUtil.addSeekListener(player, new PlayerListener() {
             @Override
@@ -680,16 +682,17 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
 
-
-    public void changeAudio(View view){
-        trackDialog.changeAudio();
-    }
     public void changeVideo(View view){
-        trackDialog.changeVideo();
+        if (!isShowingTrackSelectionDialog && TrackSelectionDialog.willHaveContent(player)) {
+            isShowingTrackSelectionDialog = true;
+            TrackSelectionDialog trackSelectionDialog =
+                    TrackSelectionDialog.createForPlayer(
+                            player,
+                            /* onDismissListener= */ dismissedDialog -> isShowingTrackSelectionDialog = false);
+            trackSelectionDialog.show(getSupportFragmentManager(), /* tag= */ null);
+        }
     }
-    public void changeSub(View view){
-        trackDialog.changeSubtitle();
-    }
+
 
     public void lock(View view){
         findViewById(R.id.ctrlLayout).setVisibility(View.GONE);
