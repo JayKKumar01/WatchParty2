@@ -15,6 +15,7 @@ import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
 import com.github.jaykkumar01.watchparty.models.ListenerData;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
+import com.github.jaykkumar01.watchparty.utils.AspectRatio;
 import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.Permission;
@@ -41,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
         Permission.askPermission(this);
         UserModel userModel = new UserModel("name","id",false,false,System.currentTimeMillis());
         //FirebaseUtils.writeUserData("012345",userModel);
+
+        AspectRatio.set(this);
 
     }
     @SuppressLint("SetTextI18n")

@@ -2,7 +2,9 @@ package com.github.jaykkumar01.watchparty.utils;
 
 import android.annotation.SuppressLint;
 import android.os.Handler;
+import android.view.View;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.media3.ui.PlayerView;
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -25,18 +27,15 @@ public class MyHandler {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public static void hideControls(ConstraintLayout onlinePlayerControlLayout) {
+        TOUCH_ACTIVE = System.currentTimeMillis();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(onlinePlayerControlLayout.getVisibility() == View.VISIBLE && (System.currentTimeMillis() - TOUCH_ACTIVE) >= CONTROL_HIDE_TIME){
+                    onlinePlayerControlLayout.setVisibility(View.GONE);
+                }
+            }
+        }, CONTROL_HIDE_TIME);
+    }
 }

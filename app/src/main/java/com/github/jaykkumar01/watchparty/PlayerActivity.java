@@ -4,22 +4,30 @@ import static androidx.media3.common.Player.REPEAT_MODE_ONE;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.PictureInPictureParams;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.util.Rational;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.webkit.PermissionRequest;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -33,8 +41,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDialog;
-import androidx.appcompat.app.WindowDecorActionBar;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.media3.common.MediaItem;
@@ -43,7 +49,9 @@ import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.exoplayer.trackselection.TrackSelector;
+import androidx.media3.ui.DefaultTimeBar;
 import androidx.media3.ui.PlayerView;
+import androidx.media3.ui.TimeBar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -52,6 +60,8 @@ import com.github.jaykkumar01.watchparty.adapters.UserAdapter;
 import com.github.jaykkumar01.watchparty.assets.TrackSelectionDialog;
 import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
+import com.github.jaykkumar01.watchparty.interfaces.JSinterface;
+import com.github.jaykkumar01.watchparty.interfaces.OnlinePlayerListener;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerActivityListener;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
@@ -62,14 +72,21 @@ import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
+import com.github.jaykkumar01.watchparty.utils.AspectRatio;
 import com.github.jaykkumar01.watchparty.utils.AutoRotate;
+import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.ChatUtil;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
 import com.github.jaykkumar01.watchparty.utils.TouchGesture;
+import com.github.jaykkumar01.watchparty.utils.WebTouchGesture;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -86,6 +103,7 @@ public class PlayerActivity extends AppCompatActivity {
     private ChatAdapter chatAdapter;
 
     public static PlayerActivityListener listener;
+    public static OnlinePlayerListener onlinePlayerListener;
     ConstraintLayout chatLayout,peerLayout;
     ImageView micBtn,deafenBtn;
     ImageView circle;
@@ -102,7 +120,7 @@ public class PlayerActivity extends AppCompatActivity {
     TextView currentMediaTV,playOffileVideo;
     ConstraintLayout addMediaLayout;
     private boolean isListenerCommand;
-    ImageView playPause;
+    ImageView playPause,webPlayPause,webMuteUnmute,webFullScreen;
     private boolean isFirstSync;
     private int count;
     private boolean isPartyStopped;
@@ -120,6 +138,20 @@ public class PlayerActivity extends AppCompatActivity {
     private TextView currentOnlineVideoTxt;
     private TextInputEditText youtubeUrlET;
     private AppCompatButton joinYouTube,createYouTube;
+    private ConstraintLayout exoplayerLayout,onlinePlayerLayout,allPlayerLayout;
+    private WebView webView;
+    private JSinterface jsInterface;
+    private boolean isYouTubePlaying;
+    private TextView onlinePlayerCurrentDuration,onlinePlayerTotalDuration;
+    private DefaultTimeBar onlinePlayerSeekBar;
+    private boolean isSeekBarTouched;
+    private Handler seekBarHandler = new Handler();
+    private long currentSeekBarMillis;
+    private boolean isYouTubeMute;
+    private int totalDuration;
+    private ConstraintLayout onlinePlayerControlLayout;
+    private WebTouchGesture webTouchGesture;
+    private boolean webpip;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -151,6 +183,53 @@ public class PlayerActivity extends AppCompatActivity {
         onlineAdd = findViewById(R.id.onlineBtn);
         offlineAddLayout = findViewById(R.id.offlineMediaLayout);
         onlineAddLayout = findViewById(R.id.onlineMediaLayout);
+        exoplayerLayout = findViewById(R.id.exo_player_view);
+        onlinePlayerLayout = findViewById(R.id.online_player_view);
+        allPlayerLayout = findViewById(R.id.all_player_view);
+
+        attachOnlinePlayerControlLayout();
+        webPlayPause = onlinePlayerLayout.findViewById(R.id.play_pause);
+        webMuteUnmute = onlinePlayerLayout.findViewById(R.id.mute_unmute);
+        webFullScreen = onlinePlayerLayout.findViewById(R.id.screen);
+        onlinePlayerCurrentDuration = onlinePlayerLayout.findViewById(R.id.position);
+        onlinePlayerTotalDuration = onlinePlayerLayout.findViewById(R.id.duration);
+        onlinePlayerSeekBar = onlinePlayerLayout.findViewById(R.id.progress);
+
+        onlinePlayerSeekBar.addListener(new TimeBar.OnScrubListener() {
+            @Override
+            public void onScrubStart(TimeBar timeBar, long position) {
+                isSeekBarTouched = true;
+
+            }
+
+            @Override
+            public void onScrubMove(TimeBar timeBar, long position) {
+
+            }
+
+            @Override
+            public void onScrubStop(TimeBar timeBar, long position, boolean canceled) {
+                currentSeekBarMillis = System.currentTimeMillis();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        callJavaScript("javascript:setCurrentDuration(" + position + ")");
+                    }
+                });
+                seekBarHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (System.currentTimeMillis() - currentSeekBarMillis >= 500) {
+                            isSeekBarTouched = false;
+                        }
+                    }
+                },500);
+            }
+        });
+
+
+
+        //setupWebView();
 
         currentMediaTV = findViewById(R.id.currentMediaTxt);
         playOffileVideo = findViewById(R.id.playOffileVideo);
@@ -195,7 +274,77 @@ public class PlayerActivity extends AppCompatActivity {
             setMicImage();
             setDeafenImage();
         }
+        AspectRatio.set(this);
 
+    }
+
+    private void captureWebView(){
+        Bitmap bitmap = Bitmap.createBitmap(webView.getWidth(),webView.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        webView.draw(canvas);
+        File externalDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File filePath = new File(externalDir, System.currentTimeMillis()+".jpg");
+        FileOutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(filePath);
+            bitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
+            outputStream.close();
+            Toast.makeText(this, "Image Saved!", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void attachOnlinePlayerControlLayout() {
+        onlinePlayerControlLayout = (ConstraintLayout) LayoutInflater.from(this)
+                .inflate(R.layout.custom_controls_online, null);
+        ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(
+                ConstraintLayout.LayoutParams.MATCH_PARENT,
+                ConstraintLayout.LayoutParams.MATCH_PARENT
+        );
+        onlinePlayerControlLayout.setLayoutParams(layoutParams);
+        onlinePlayerLayout.addView(onlinePlayerControlLayout);
+    }
+
+    @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
+    private void setupWebView() {
+        webView = findViewById(R.id.onlinePlayerWebView);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(PermissionRequest request) {
+                request.grant(request.getResources());
+            }
+        });
+
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                boolean x = !url.equals("file:///android_asset/youtube_iframe_api.html");
+                if (x) {
+                    return;
+                }
+                //callJavaScript("javascript:init(\"" + room.getUser().getUserId() + "\")");
+            }
+
+        });
+        jsInterface = new JSinterface(this);
+        webView.addJavascriptInterface(jsInterface, "Android");
+
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setMediaPlaybackRequiresUserGesture(false);
+
+        String path = "file:android_asset/youtube_iframe_api.html";
+        WebView.enableSlowWholeDocumentDraw();
+        //setContentView(webView);
+        webView.loadUrl(path);
+
+
+    }
+    public void callJavaScript(String func) {
+        webView.evaluateJavascript(func, null);
     }
 
 
@@ -233,6 +382,39 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void setUpListener() {
+
+        onlinePlayerListener = new OnlinePlayerListener() {
+            @Override
+            public void onUpdateCurrentDuration(int seconds) {
+                String currentDuration = Base.formatSeconds(seconds);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onlinePlayerCurrentDuration.setText(currentDuration);
+//                        if (totalDuration < seconds && onlinePlayerTotalDuration.getText().equals(getString(R.string._00_00))){
+//                            totalDuration = seconds;
+//                            onlinePlayerSeekBar.setDuration(seconds);
+//                        }
+                        if (!isSeekBarTouched) {
+                            onlinePlayerSeekBar.setPosition(seconds);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onUpdateTotalDuration(int seconds) {
+//                totalDuration = seconds;
+                String totalDuration = Base.formatSeconds(seconds);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onlinePlayerTotalDuration.setText(totalDuration);
+                        onlinePlayerSeekBar.setDuration(seconds);
+                    }
+                });
+            }
+        };
         listener = new PlayerActivityListener() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
@@ -327,6 +509,17 @@ public class PlayerActivity extends AppCompatActivity {
                         CallService.listener.onSendJoinedPartyAgain();
                     }
 
+                });
+            }
+
+            @Override
+            public void onScale(float scaleFactor) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView textView = findViewById(R.id.live_feed);
+                        textView.setText(scaleFactor+"");
+                    }
                 });
             }
         };
@@ -570,12 +763,15 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void test(View view) {
-//        long ms = player.getCurrentPosition();
-//        ms += 10000;
-//        if (player.getDuration() - 5000 > ms){
-//            player.seekTo(ms);
-//        }
+        //webTouchGesture.resize();
+//        float x = AspectRatio.value(1.22f);
+//        float x = Base.getZoomFactor(1.22f);
+//        webView.setScaleX(x);
+//        webView.setScaleY(x);
+//
+//        Toast.makeText(this, ""+x, Toast.LENGTH_SHORT).show();
     }
+
 
     public void fullScreen(View view) {
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
@@ -595,6 +791,7 @@ public class PlayerActivity extends AppCompatActivity {
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
             fullscreen.setImageResource(R.drawable.fullscreen_exit);
+            webFullScreen.setImageResource(R.drawable.fullscreen_exit);
             hideLayout(true);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -609,6 +806,7 @@ public class PlayerActivity extends AppCompatActivity {
         else {
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             fullscreen.setImageResource(R.drawable.fullscreen);
+            webFullScreen.setImageResource(R.drawable.fullscreen);
             hideLayout(false);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -654,6 +852,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     @SuppressLint("UseCompatLoadingForDrawables")
     public void toogleAddLayout(boolean online) {
+
         if(online){
             offlineAddLayout.setVisibility(View.GONE);
             onlineAddLayout.setVisibility(View.VISIBLE);
@@ -711,7 +910,8 @@ public class PlayerActivity extends AppCompatActivity {
             return;
         }
         addMediaLayout.setVisibility(View.GONE);
-        playerView.setVisibility(View.VISIBLE);
+        allPlayerLayout.setVisibility(View.VISIBLE);
+        exoplayerLayout.setVisibility(View.VISIBLE);
         playVideo(videoUri);
     }
 
@@ -721,9 +921,27 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void refreshLayout() {
-        playerView.setVisibility(View.GONE);
+        allPlayerLayout.setVisibility(View.GONE);
+        exoplayerLayout.setVisibility(View.GONE);
+        onlinePlayerLayout.setVisibility(View.GONE);
         addMediaLayout.setVisibility(View.VISIBLE);
         releasePlayer();
+        releaseWebView();
+    }
+
+    private void releaseWebView() {
+        if (webView != null) {
+            webView.loadUrl("");
+            webView = null;
+        }
+
+        isYouTubePlaying = false;
+        webPlayPause.setImageResource(R.drawable.exo_pause);
+        isYouTubeMute = false;
+        webMuteUnmute.setImageResource(R.drawable.volume_on);
+        onlinePlayerCurrentDuration.setText(getString(R.string._00_00));
+        onlinePlayerTotalDuration.setText(getString(R.string._00_00));
+
     }
 
     private void releasePlayer() {
@@ -881,6 +1099,24 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (pip){
+            pip = false;
+            //onlinePlayerLayout.setVisibility(View.VISIBLE);
+        }
+        if (webpip){
+            webpip = false;
+            onlinePlayerLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         if (pip){
@@ -900,10 +1136,7 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (pip){
-            pip = false;
-            return;
-        }
+
         refreshLayout();
     }
 
@@ -926,4 +1159,70 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
+    public void joinYouTubeVideo(View view) {
+        if (webView == null){
+            setupWebView();
+        }
+        addMediaLayout.setVisibility(View.GONE);
+        allPlayerLayout.setVisibility(View.VISIBLE);
+        onlinePlayerLayout.setVisibility(View.VISIBLE);
+        webTouchGesture = new WebTouchGesture(this,webView,onlinePlayerListener,onlinePlayerControlLayout);
+        webView.setOnTouchListener(webTouchGesture);
+    }
+
+    public void webPlayPause(View view) {
+
+        isYouTubePlaying = !isYouTubePlaying;
+        callJavaScript("javascript:playPauseVideo(" + !isYouTubePlaying + ")");
+        if (isYouTubePlaying){
+            webPlayPause.setImageResource(R.drawable.exo_play);
+        }else{
+            webPlayPause.setImageResource(R.drawable.exo_pause);
+        }
+
+    }
+
+
+    public void webMuteUnmute(View view) {
+        isYouTubeMute = !isYouTubeMute;
+        callJavaScript("javascript:setPlayerMute(" + isYouTubeMute + ")");
+        if (isYouTubeMute){
+            webMuteUnmute.setImageResource(R.drawable.volume_off);
+        }else {
+            webMuteUnmute.setImageResource(R.drawable.volume_on);
+        }
+    }
+
+    public void webViewClick(View view) {
+    }
+
+    public void webLock(View view) {
+        onlinePlayerLayout.findViewById(R.id.ctrlLayout).setVisibility(View.GONE);
+        onlinePlayerLayout.findViewById(R.id.big_lock).setVisibility(View.VISIBLE);
+    }
+
+    public void webcc(View view) {
+    }
+
+    public void enterWebPIP(View view) {
+        Display d = getWindowManager().getDefaultDisplay();
+        Point p = new Point();
+        d.getSize(p);
+        Rational ratio = new Rational(16,9);
+        //ratio = new Rational(dimension(vidUri)[0],dimension(vidUri)[1]);
+        PictureInPictureParams.Builder pipBuilder = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            onlinePlayerLayout.setVisibility(View.GONE);
+            pipBuilder = new PictureInPictureParams.Builder();
+            pipBuilder.setAspectRatio(ratio).build();
+            enterPictureInPictureMode(pipBuilder.build());
+            webpip = true;
+        }
+    }
+
+    public void webUnlock(View view) {
+        view.setVisibility(View.GONE);
+        onlinePlayerLayout.findViewById(R.id.ctrlLayout).setVisibility(View.VISIBLE);
+    }
 }

@@ -21,4 +21,6 @@ public interface PlayerActivityListener {
     void onPlaybackStateRequest(String id);
 
     void onPlaybackStateRecevied(String id, boolean isPlaying, long positionMs);
+
+    void onScale(float scaleFactor);
 }
