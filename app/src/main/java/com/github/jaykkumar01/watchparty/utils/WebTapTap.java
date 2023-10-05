@@ -16,8 +16,8 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.media3.common.Player;
 
+import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
-import com.github.jaykkumar01.watchparty.interfaces.OnlinePlayerListener;
 
 @SuppressLint("UnsafeOptInUsageError")
  public class WebTapTap extends GestureDetector.SimpleOnGestureListener {
@@ -25,7 +25,6 @@ import com.github.jaykkumar01.watchparty.interfaces.OnlinePlayerListener;
     private final Context context;
     private final Activity activity;
     private final WebView webView;
-    private final OnlinePlayerListener listener;
     View ar1,ar2,ar3,lar1,lar2,lar3,leftBox,rightBox;
     TextView rightTXT,leftTXT;
     public static int seekVal = 0;
@@ -37,11 +36,10 @@ import com.github.jaykkumar01.watchparty.interfaces.OnlinePlayerListener;
     private ConstraintLayout onlinePlayerControlLayout;
     private Player player;
 
-    public WebTapTap(Context context, WebView webView, OnlinePlayerListener listener, ConstraintLayout onlinePlayerControlLayout) {
+    public WebTapTap(Context context, WebView webView, ConstraintLayout onlinePlayerControlLayout) {
         this.context = context;
         this.activity = (Activity)context;
         this.webView = webView;
-        this.listener = listener;
         this.onlinePlayerControlLayout = onlinePlayerControlLayout;
         initViews();
     }

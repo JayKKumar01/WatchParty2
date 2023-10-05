@@ -2,6 +2,7 @@ var player;
 var interval;
 
 function onYouTubeIframeAPIReady() {
+    Android.onReady();
 //    createPlayer('R7aCOI4DuA0');
     createPlayer('b3-gdDnybIg'); // Default video ID
 }
@@ -39,6 +40,7 @@ function getHeight() {
 }
 
 function onPlayerReady(event) {
+    sendVideoQuality();
     // This event fires when the player is ready to receive API calls.
     updateTotalDuration();
     // Start updating the current duration only if the player is playing
@@ -111,18 +113,8 @@ function updateTotalDuration() {
 // Inside script.js
 
 function setCurrentDuration(currentDuration) {
-    // Assuming you have a player variable defined in your script.js
-    // For example: var player = new YT.Player(...);
-
-    // Set the current duration of the player
-    if (player && typeof player.seekTo === 'function') {
-        player.seekTo(currentDuration, true);
-    } else {
-        console.error('Player not available or seekTo method not supported.');
-    }
+    player.seekTo(currentDuration, true);
 }
-
-// Inside script.js
 
 // Inside script.js
 
@@ -135,6 +127,35 @@ function setPlayerMute(isMute) {
         player.unMute();
     }
 }
+
+function setPlaybackRate(rate) {// Assuming you have a function to get the YouTube player instance
+    player.setPlaybackRate(rate);
+}
+
+function setPlaybackQuality(quality) {
+    player.setPlaybackQuality(quality);
+}
+
+function sendVideoQuality() {
+//    Android.sendVideoQuality(localStorage.getItem("yt-player-quality").data)
+//    Android.sendVideoQuality(player.getAvailableQualityLevels())
+}
+
+function enableControlsForDuration(durationInSeconds) {
+    // Assuming you have a player variable defined in your script.js
+    // For example: var player = new YT.Player(...);
+
+    // Enable controls
+    player.setOption('controls', 1);
+
+    // Disable controls after the specified duration
+    setTimeout(function() {
+        player.setOption('controls', 0);
+    }, durationInSeconds * 1000); // Convert duration to milliseconds
+}
+
+
+
 
 
 

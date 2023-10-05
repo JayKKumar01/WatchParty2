@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.adapters.ChatAdapter;
 import com.github.jaykkumar01.watchparty.adapters.UserAdapter;
@@ -25,6 +26,10 @@ import java.util.List;
 import java.util.Set;
 
 public class RecycleViewManagement {
+
+    public static void start(Context context, Room room) {
+        new RecycleViewManagement(context,room);
+    }
 
     public interface Listener{
         void onReceiveMessage(MessageModel messageModel);

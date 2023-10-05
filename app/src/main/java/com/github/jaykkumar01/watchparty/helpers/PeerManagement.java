@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.WindowDecorActionBar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.interfaces.MessageListener;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
@@ -20,6 +21,10 @@ import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.services.CallService;
 
 public class PeerManagement {
+
+    public static void start(Context context, Room room) {
+        new PeerManagement(context, room);
+    }
 
     public interface Listener{
         void onReceiveMessage(MessageModel messageModel);

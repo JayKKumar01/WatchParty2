@@ -1,32 +1,21 @@
 package com.github.jaykkumar01.watchparty.interfaces;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.media.AudioRecord;
-import android.media.AudioTrack;
-import android.os.Build;
-import android.os.Environment;
-import android.telecom.Call;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.helpers.PeerManagement;
+import com.github.jaykkumar01.watchparty.helpers.PlayerManagement;
 import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
 import com.github.jaykkumar01.watchparty.models.AudioPlayerModel;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
-import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -97,23 +86,23 @@ public class JavaScriptInterface implements Data{
     }
     @JavascriptInterface
     public void handleSeekInfo(String id,long positionMs){
-        PlayerActivity.listener.onSeekInfo(id,positionMs);
+        PlayerManagement.listener.onSeekInfo(id,positionMs);
     }
     @JavascriptInterface
     public void handlePlayPauseInfo(String id,boolean isPlaying){
-        PlayerActivity.listener.onPlayPauseInfo(id,isPlaying);
+        PlayerManagement.listener.onPlayPauseInfo(id,isPlaying);
     }
     @JavascriptInterface
     public void handlePlaybackStateRequest(String id){
-        PlayerActivity.listener.onPlaybackStateRequest(id);
+        PlayerManagement.listener.onPlaybackStateRequest(id);
     }
     @JavascriptInterface
     public void handlePlaybackState(String id,boolean isPlaying, long positionMs){
-        PlayerActivity.listener.onPlaybackStateRecevied(id,isPlaying,positionMs);
+        PlayerManagement.listener.onPlaybackStateReceived(id,isPlaying,positionMs);
     }
     @JavascriptInterface
     public void handleActivityStop(String id,String name, long millis){
-        PlayerActivity.listener.onPlayPauseInfo(id,false);
+        PlayerManagement.listener.onPlayPauseInfo(id,false);
         Toast.makeText(context, name+" left the party!", Toast.LENGTH_SHORT).show();
     }
     @JavascriptInterface

@@ -23,7 +23,7 @@ public class NotificationReceiver extends BroadcastReceiver implements Data {
                 CallService.listener.onToogleMic();
             }
             if (PlayerActivity.listener != null) {
-                PlayerActivity.listener.onToogleMic();
+                PlayerActivity.listener.onToggleMic();
             }
         } else if (requestCode == REQUEST_CODE_HANGUP) {
             if (CallService.listener != null) {
@@ -39,7 +39,7 @@ public class NotificationReceiver extends BroadcastReceiver implements Data {
                 CallService.listener.onToogleDeafen();
             }
             if (PlayerActivity.listener != null) {
-                PlayerActivity.listener.onToogleDeafen();
+                PlayerActivity.listener.onToggleDeafen();
             }
 
         }

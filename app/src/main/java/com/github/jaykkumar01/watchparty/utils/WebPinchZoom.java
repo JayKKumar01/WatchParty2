@@ -13,13 +13,11 @@ import com.github.jaykkumar01.watchparty.MainActivity;
 import com.github.jaykkumar01.watchparty.PlayerActivity;
 
 public class WebPinchZoom implements ScaleGestureDetector.OnScaleGestureListener {
-    private Context context;
-    private WebView webView;
+    private final WebView webView;
     private float scaleFactor = 1.0f;
     private float x;
 
     public WebPinchZoom(Context context, WebView webView) {
-        this.context = context;
         this.webView = webView;
     }
 

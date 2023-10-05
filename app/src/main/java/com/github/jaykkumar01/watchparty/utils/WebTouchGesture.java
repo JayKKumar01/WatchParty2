@@ -9,7 +9,7 @@ import android.webkit.WebView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.github.jaykkumar01.watchparty.interfaces.OnlinePlayerListener;
+import com.github.jaykkumar01.watchparty.PlayerActivity;
 
 public class WebTouchGesture implements View.OnTouchListener{
     private final ScaleGestureDetector PINCH_ZOOM;
@@ -17,17 +17,15 @@ public class WebTouchGesture implements View.OnTouchListener{
     private final WebPinchZoom pinchZoom;
     Context context;
     WebView webView;
-    OnlinePlayerListener listener;
     ConstraintLayout onlinePlayerControlLayout;
 
-    public WebTouchGesture(Context context, WebView webView, OnlinePlayerListener listener, ConstraintLayout onlinePlayerControlLayout) {
+    public WebTouchGesture(Context context, WebView webView, ConstraintLayout onlinePlayerControlLayout) {
         this.context = context;
         this.webView = webView;
-        this.listener = listener;
         this.onlinePlayerControlLayout = onlinePlayerControlLayout;
         pinchZoom = new WebPinchZoom(context,webView);
         PINCH_ZOOM = new ScaleGestureDetector(context,pinchZoom);
-        TAP_TAP = new GestureDetector(context,new WebTapTap(context,webView,listener,onlinePlayerControlLayout));
+        TAP_TAP = new GestureDetector(context,new WebTapTap(context,webView,onlinePlayerControlLayout));
     }
 
     public void resize(){
