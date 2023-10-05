@@ -1,9 +1,12 @@
 package com.github.jaykkumar01.watchparty.models;
 
+import android.content.Context;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 public class EventListenerData {
+    Context context;
     DatabaseReference databaseReference;
     ValueEventListener valueEventListener;
 
@@ -14,6 +17,14 @@ public class EventListenerData {
 
     public EventListenerData() {
 
+    }
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
     }
 
     public DatabaseReference getDatabaseReference() {

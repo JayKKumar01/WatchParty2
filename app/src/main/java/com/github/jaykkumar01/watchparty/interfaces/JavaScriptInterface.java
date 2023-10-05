@@ -11,6 +11,8 @@ import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty.PlayerActivity;
+import com.github.jaykkumar01.watchparty.helpers.PeerManagement;
+import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
 import com.github.jaykkumar01.watchparty.models.AudioPlayerModel;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.UserModel;
@@ -90,7 +92,8 @@ public class JavaScriptInterface implements Data{
         messageModel.setName(name);
         messageModel.setTimeMillis(millis);
 
-        PlayerActivity.listener.onReceiveMessage(messageModel);
+        PeerManagement.listener.onReceiveMessage(messageModel);
+        RecycleViewManagement.listener.onReceiveMessage(messageModel);
     }
     @JavascriptInterface
     public void handleSeekInfo(String id,long positionMs){

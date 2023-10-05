@@ -88,10 +88,7 @@ public class FirebaseUtils {
         };
         DatabaseReference databaseReference = getDatabaseReference().child(code).child(USERS);
         databaseReference.addValueEventListener(eventListener);
-        EventListenerData data = new EventListenerData();
-        data.setDatabaseReference(databaseReference);
-        data.setValueEventListener(eventListener);
-        return data;
+        return new EventListenerData(databaseReference,eventListener);
     }
     public static void updateUserData(String path, UserModel userModel, FirebaseListener listener) {
         DatabaseReference databaseReference = getDatabaseReference().child(path);
@@ -139,10 +136,7 @@ public class FirebaseUtils {
 
         databaseReference.addValueEventListener(eventListener);
 
-        EventListenerData eventListenerData = new EventListenerData();
-        eventListenerData.setDatabaseReference(databaseReference);
-        eventListenerData.setValueEventListener(eventListener);
-        return eventListenerData;
+        return new EventListenerData(databaseReference,eventListener);
     }
 
 
@@ -202,7 +196,7 @@ public class FirebaseUtils {
         });
     }
     public static void removeUserData(String path, UserModel userModel) {
-        DatabaseReference databaseReference = getDatabaseReference().child(path).child(userModel.getUserId());
+        DatabaseReference databaseReference = getDatabaseReference().child(path).child(USERS).child(userModel.getUserId());
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

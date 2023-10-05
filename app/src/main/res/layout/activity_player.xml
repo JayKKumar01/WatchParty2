@@ -593,7 +593,7 @@
             <ImageView
                 android:layout_width="35dp"
                 android:layout_height="0dp"
-                android:onClick="toogleLayout"
+                android:onClick="toggleLayout"
                 app:layout_constraintDimensionRatio="1"
                 android:background="@drawable/bg_peer"
                 android:src="@drawable/baseline_chat_bubble_24"
