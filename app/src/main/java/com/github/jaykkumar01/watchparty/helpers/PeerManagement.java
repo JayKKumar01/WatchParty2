@@ -20,6 +20,11 @@ import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.services.CallService;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 public class PeerManagement {
 
     public static void start(Context context, Room room) {
@@ -115,6 +120,9 @@ public class PeerManagement {
                         messageModel.setTimeMillis(System.currentTimeMillis());
                         CallService.listener.sendMessage(messageModel);
                         messageET.setText("");
+//                        String msg = messageModel.getMessage();
+//                        byte[] msgBytes = msg.getBytes(StandardCharsets.UTF_8);
+//                        messageModel.setMessage(Arrays.toString(msgBytes));
                         listener.onReceiveMessage(messageModel);
                         RecycleViewManagement.listener.onReceiveMessage(messageModel);
                     }

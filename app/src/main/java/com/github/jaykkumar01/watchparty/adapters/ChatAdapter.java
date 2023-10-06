@@ -2,6 +2,7 @@ package com.github.jaykkumar01.watchparty.adapters;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +12,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,13 +56,6 @@ public class ChatAdapter extends RecyclerView.Adapter {
         }
         return 0;
     }
-
-//    @NonNull
-//    @Override
-//    public SendViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-//        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_receive, parent, false);
-//        return new SendViewHolder(itemView);
-//    }
 
     @NonNull
     @Override

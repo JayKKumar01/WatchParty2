@@ -1,6 +1,10 @@
 package com.github.jaykkumar01.watchparty.models;
 
-public class MessageModel {
+import org.apache.commons.lang3.StringEscapeUtils;
+
+import java.io.Serializable;
+
+public class MessageModel implements Serializable {
     String userId;
     String name;
     String message;
@@ -67,6 +71,7 @@ public class MessageModel {
 
     public String getMessage() {
         return message;
+//        return StringEscapeUtils.unescapeJava(message);
     }
 
     public void setMessage(String message) {

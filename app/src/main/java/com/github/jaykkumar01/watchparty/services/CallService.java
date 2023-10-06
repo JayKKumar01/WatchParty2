@@ -31,6 +31,7 @@ import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.interfaces.CallServiceListener;
 import com.github.jaykkumar01.watchparty.interfaces.Data;
 import com.github.jaykkumar01.watchparty.interfaces.JavaScriptInterface;
+import com.github.jaykkumar01.watchparty.models.FileModel;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
@@ -38,7 +39,9 @@ import com.github.jaykkumar01.watchparty.receivers.NotificationReceiver;
 import com.github.jaykkumar01.watchparty.update.Info;
 import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
+import com.github.jaykkumar01.watchparty.utils.ObjectUtil;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -112,8 +115,7 @@ public class CallService extends Service implements Data {
                     }
                     int read = audioRecord.read(buffer, 0, BUFFER_SIZE_IN_BYTES);
 
-
-                    String str = objToString(Arrays.toString(buffer), read, millis);
+                    FileModel file = new FileModel(buffer,read,millis);
 
                     if (!Base.isNetworkAvailable(CallService.this)) {
                         continue;
@@ -121,7 +123,7 @@ public class CallService extends Service implements Data {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callJavaScript("javascript:sendFile(" + str + ")");
+                            callJavaScriptBytes("sendFile",file);
                         }
                     });
                 }
@@ -140,7 +142,7 @@ public class CallService extends Service implements Data {
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                callJavaScript("javascript:connect(\"" + userId + "\")");
+                                callJavaScript("connect",userId);
                             }
                         });
 
@@ -199,56 +201,42 @@ public class CallService extends Service implements Data {
 
             @Override
             public void sendMessage(MessageModel messageModel) {
-                String str = stringToString(
-                        messageModel.getName(),
-                        messageModel.getMessage(),
-                        messageModel.getTimeMillis()
-                );
+                //String str = ObjectUtil.objectToStr(messageModel);
+
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("javascript:sendMessage(" + str + ")");
+                        callJavaScriptBytes("sendMessage",messageModel);
                     }
                 });
             }
 
             @Override
             public void onSendSeekInfo(long positionMs) {
-                String str = stringToString(
-                        positionMs
-                );
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("javascript:sendSeekInfo(" + str + ")");
+                        callJavaScript("sendSeekInfo", positionMs);
                     }
                 });
             }
 
             @Override
             public void onSendPlayPauseInfo(boolean isPlaying) {
-                String str = stringToString(
-                        isPlaying
-                );
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("javascript:sendPlayPauseInfo(" + str + ")");
+                        callJavaScript("sendPlayPauseInfo", isPlaying);
                     }
                 });
             }
 
             @Override
             public void onSendPlaybackState(String id, boolean isPlaying, long currentPosition) {
-                String str = stringToString(
-                        id,
-                        isPlaying,
-                        currentPosition
-                );
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("javascript:sendPlaybackState(" + str + ")");
+                        callJavaScript("sendPlaybackState", id, isPlaying, currentPosition);
                     }
                 });
             }
@@ -258,35 +246,27 @@ public class CallService extends Service implements Data {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("javascript:sendPlaybackStateRequest()");
+                        callJavaScript("sendPlaybackStateRequest");
                     }
                 });
             }
 
             @Override
             public void onActivityStopInfo() {
-                String str = stringToString(
-                        userModel.getName(),
-                        System.currentTimeMillis()
-                );
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("javascript:sendActivityStopInfo(" + str + ")");
+                        callJavaScript("sendActivityStopInfo", userModel.getName(), System.currentTimeMillis());
                     }
                 });
             }
 
             @Override
             public void onSendJoinedPartyAgain() {
-                String str = stringToString(
-                        userModel.getName(),
-                        System.currentTimeMillis()
-                );
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("javascript:sendJoinedPartyAgain(" + str + ")");
+                        callJavaScript("sendJoinedPartyAgain", userModel.getName(), System.currentTimeMillis());
                     }
                 });
             }
@@ -313,7 +293,7 @@ public class CallService extends Service implements Data {
                 if (x) {
                     return;
                 }
-                callJavaScript("javascript:init(\"" + room.getUser().getUserId() + "\")");
+                callJavaScript("init", room.getUser().getUserId());
             }
 
         });
@@ -330,33 +310,34 @@ public class CallService extends Service implements Data {
 
     }
 
-    private String objToString(Object... items) {
-        StringJoiner joiner = new StringJoiner(",");
-        for (Object item : items) {
-            if (item == null) {
-                item = "null";
-            }
-            joiner.add(item.toString());
-        }
-        return joiner.toString();
-    }
+//    private String objToString(Object... items) {
+//        StringJoiner joiner = new StringJoiner(",");
+//        for (Object item : items) {
+//            if (item == null) {
+//                item = "null";
+//            }
+//            joiner.add(item.toString());
+//        }
+//        return joiner.toString();
+//    }
 
-    private String stringToString(Object... items) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < items.length; i++) {
-            Object item = items[i];
-            if (item instanceof String) {
-                result.append("\"").append(item).append("\"");
-            } else {
-                result.append(item);
-            }
-            // Separate items with a comma if it's not the last item
-            if (i < items.length - 1) {
-                result.append(",");
-            }
-        }
-        return result.toString();
-    }
+//    private String stringToString(Object... items) {
+//        StringBuilder result = new StringBuilder();
+//        for (int i = 0; i < items.length; i++) {
+//            Object item = items[i];
+//            if (item instanceof String) {
+//                result.append("\"").append(item).append("\"");
+////                result.append(item);
+//            } else {
+//                result.append(item);
+//            }
+//            // Separate items with a comma if it's not the last item
+//            if (i < items.length - 1) {
+//                result.append(",");
+//            }
+//        }
+//        return result.toString();
+//    }
 
 
     @Override
@@ -364,8 +345,26 @@ public class CallService extends Service implements Data {
         return null;
     }
 
-    public void callJavaScript(String func) {
-        webView.evaluateJavascript(func, null);
+    public void callJavaScript(String func,Object... args) {
+        StringBuilder argString = new StringBuilder();
+        for (Object arg : args) {
+            if (arg instanceof String) {
+                argString.append("'").append(arg).append("'");
+            } else {
+                argString.append(arg.toString());
+            }
+            argString.append(",");
+        }
+        if (argString.length() > 0) {
+            argString.deleteCharAt(argString.length() - 1); // Remove the trailing comma
+        }
+        final String javascriptCommand = String.format("javascript:%s(%s)", func, argString.toString());
+        webView.loadUrl(javascriptCommand);
+    }
+
+    public void callJavaScriptBytes(String func,Object obj) {
+        String javascriptCommand = String.format("javascript:%s(%s)", func, ObjectUtil.objectToStr(obj));
+        webView.loadUrl(javascriptCommand);
     }
 
 

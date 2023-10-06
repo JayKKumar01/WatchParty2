@@ -9,11 +9,15 @@ import com.github.jaykkumar01.watchparty.helpers.PeerManagement;
 import com.github.jaykkumar01.watchparty.helpers.PlayerManagement;
 import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
 import com.github.jaykkumar01.watchparty.models.AudioPlayerModel;
+import com.github.jaykkumar01.watchparty.models.FileModel;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
+import com.github.jaykkumar01.watchparty.utils.ObjectUtil;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -46,9 +50,10 @@ public class JavaScriptInterface implements Data{
 
 
     @JavascriptInterface
-    public void showFile(String id,byte[] bytes, int read, long millis){
+    public void showFile(String id,byte[] bytesModel){
+        FileModel fileModel = (FileModel) ObjectUtil.bytesToObj(bytesModel);
         if (!playerMap.containsKey(id)){
-            AudioPlayerModel model = new AudioPlayerModel(id,millis);
+            AudioPlayerModel model = new AudioPlayerModel(id,fileModel.getMillis());
             playerMap.put(id,model);
         }
 
@@ -62,7 +67,7 @@ public class JavaScriptInterface implements Data{
             @Override
             public void run() {
 
-                long diff = System.currentTimeMillis() - millis - audioPlayerModel.getOffset();
+                long diff = System.currentTimeMillis() - fileModel.getMillis() - audioPlayerModel.getOffset();
                 if (diff > 600){
                     return;
                 }
@@ -70,16 +75,14 @@ public class JavaScriptInterface implements Data{
                 if (Info.isDeafen){
                     return;
                 }
-                audioPlayerModel.getAudioTrack().write(bytes,0,read);
+                audioPlayerModel.getAudioTrack().write(fileModel.getBytes(),0,fileModel.getRead());
             }
         });
     }
 
     @JavascriptInterface
-    public void showMessage(String id, String name, String message, long millis){
-        MessageModel messageModel = new MessageModel(id,message);
-        messageModel.setName(name);
-        messageModel.setTimeMillis(millis);
+    public void showMessage(String id, byte[] bytes){
+        MessageModel messageModel = (MessageModel) ObjectUtil.bytesToObj(bytes);
 
         PeerManagement.listener.onReceiveMessage(messageModel);
         RecycleViewManagement.listener.onReceiveMessage(messageModel);

@@ -26,7 +26,7 @@ function init(userId) {
 function handleConnection(connection) {
     connections.push(connection); // Add the new connection to the list
     connection.on('data', handleData);
-    Android.sendToast("Connected: " + connection.peer);
+//    Android.send("Connected: " + connection.peer);
 }
 
 function connect(otherId) {
@@ -117,11 +117,13 @@ function sendJoinedPartyAgain(name, millis) {
 
 
 
+
 function handleData(data) {
     if (data.type === 'message') {
-        Android.showMessage(data.id, data.name, data.message, data.millis);
-    } else if (data.type === 'file') {
-        Android.showFile(data.id, data.bytes, data.read, data.millis);
+        Android.showMessage(data.id, data.bytes);
+    }
+     else if (data.type === 'file') {
+        Android.showFile(data.id, data.bytes);
     } else if (data.type === 'seekInfo') {
         Android.handleSeekInfo(data.id, data.positionMs);
     } else if (data.type === 'playPauseInfo') {
@@ -155,14 +157,32 @@ function sendPlaybackState(id, isPlaying, positionMs) {
 
 
 
+//function sendMessage(name, message, millis) {
+//    var data = {
+//        type: 'message',
+//        id: myId,
+//        name: name,
+//        message: message,
+//        millis: millis
+//    };
+//
+//    // Convert the data object to a JSON string
+//    var jsonString = JSON.stringify(data);
+//
+//    // Loop through all connections and send the JSON string to each one
+//    for (const connection of connections) {
+//        if (connection && connection.open) {
+//            connection.send(jsonString);
+//        }
+//    }
+//}
 
-function sendMessage(name, message, millis) {
+
+function sendMessage(msg) {
     var data = {
         type: 'message',
         id: myId,
-        name: name,
-        message: message,
-        millis: millis
+        bytes: msg
     };
 
     // Loop through all connections and send the message data to each one
@@ -173,13 +193,11 @@ function sendMessage(name, message, millis) {
     }
 }
 
-function sendFile(bytes, read, millis) {
+function sendFile(files) {
     var data = {
         type: 'file',
         id: myId,
-        bytes: bytes,
-        read: read,
-        millis: millis
+        bytes: files
     };
 
     // Loop through all connections and send the file data to each one

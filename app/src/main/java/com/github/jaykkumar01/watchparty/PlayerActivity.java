@@ -11,6 +11,7 @@ import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Rational;
 import android.view.Display;
 import android.view.View;
@@ -39,11 +40,11 @@ import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
 import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
 import com.github.jaykkumar01.watchparty.libs.OnlinePlayerView;
 import com.github.jaykkumar01.watchparty.libs.models.YouTubeData;
-import com.github.jaykkumar01.watchparty.libs.utils.YouTubeUtil;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
 import com.github.jaykkumar01.watchparty.models.ListenerData;
 import com.github.jaykkumar01.watchparty.models.OnlineVideo;
 import com.github.jaykkumar01.watchparty.models.Room;
+import com.github.jaykkumar01.watchparty.models.SampleData;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
@@ -51,9 +52,12 @@ import com.github.jaykkumar01.watchparty.utils.AspectRatio;
 import com.github.jaykkumar01.watchparty.utils.AutoRotate;
 import com.github.jaykkumar01.watchparty.utils.ChatUtil;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
+import com.github.jaykkumar01.watchparty.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
 import com.github.jaykkumar01.watchparty.libs.utils.YouTubeAPI;
 import com.google.android.material.textfield.TextInputEditText;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -102,6 +106,8 @@ public class PlayerActivity extends AppCompatActivity {
         void onPip();
 
         void onChatClick();
+
+        void onMessage(String message);
     }
 
 
@@ -256,6 +262,18 @@ public class PlayerActivity extends AppCompatActivity {
 
         listener = new Listener() {
             @Override
+            public void onMessage(String message) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String msg = StringEscapeUtils.unescapeJava(message);
+                        Log.d("message",msg);
+                        Toast.makeText(PlayerActivity.this, ""+msg, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
             public void onChatClick() {
                 runOnUiThread(() -> {
                     if (partyLayout.getVisibility() != View.VISIBLE){
@@ -368,6 +386,8 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     public void test(View view) {
+
+
         //webTouchGesture.resize();
 //        float x = AspectRatio.value(1.22f);
 //        float x = Base.getZoomFactor(1.22f);
