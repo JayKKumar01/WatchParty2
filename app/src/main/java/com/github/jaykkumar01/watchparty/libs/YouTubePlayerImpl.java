@@ -6,12 +6,18 @@ import android.webkit.WebView;
 
 import com.github.jaykkumar01.watchparty.libs.interfaces.YouTubePlayer;
 import com.github.jaykkumar01.watchparty.libs.interfaces.YouTubePlayerListener;
+import com.github.jaykkumar01.watchparty.libs.utils.YouTubeUtil;
 
 public class YouTubePlayerImpl implements YouTubePlayer {
     private final WebView webView;
     private final Handler mainThread = new Handler(Looper.getMainLooper());
     public YouTubePlayerImpl(WebView webView) {
         this.webView = webView;
+    }
+
+    @Override
+    public void createPlayer(String link) {
+        invoke("createPlayer", YouTubeUtil.extractVideoId(link));
     }
 
     @Override
@@ -52,6 +58,11 @@ public class YouTubePlayerImpl implements YouTubePlayer {
     @Override
     public void addListener(YouTubePlayerListener playerListener) {
 
+    }
+
+    @Override
+    public void clean() {
+        invoke("clean");
     }
 
     private void invoke(String function, Object... args) {

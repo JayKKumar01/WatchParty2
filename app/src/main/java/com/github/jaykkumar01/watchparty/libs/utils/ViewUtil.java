@@ -41,16 +41,16 @@ public class ViewUtil{
 
     public void initViews(OnlinePlayerView onlinePlayerView) {
 
-        onlinePlayerView.playPause = findView(R.id.play_pause);
-        onlinePlayerView.muteUnmute = findView(R.id.mute_unmute);
-        onlinePlayerView.lock = findView(R.id.lock);
-        onlinePlayerView.unlock = findView(R.id.big_lock);
-        onlinePlayerView.screen = findView(R.id.screen);
-        onlinePlayerView.gear = findView(R.id.vidTrack);
-        onlinePlayerView.speed = findView(R.id.speed);
-        onlinePlayerView.currentDurationTV = findView(R.id.position);
-        onlinePlayerView.totalDurationTV = findView(R.id.duration);
-        onlinePlayerView.seekBar = findView(R.id.progress);
+//        onlinePlayerView.playPause = findView(R.id.play_pause);
+//        onlinePlayerView.muteUnmute = findView(R.id.mute_unmute);
+//        onlinePlayerView.lock = findView(R.id.lock);
+//        onlinePlayerView.unlock = findView(R.id.big_lock);
+//        onlinePlayerView.screen = findView(R.id.screen);
+//        onlinePlayerView.gear = findView(R.id.vidTrack);
+//        onlinePlayerView.speed = findView(R.id.speed);
+//        onlinePlayerView.currentDurationTV = findView(R.id.position);
+//        onlinePlayerView.totalDurationTV = findView(R.id.duration);
+//        onlinePlayerView.seekBar = findView(R.id.progress);
 
     }
 
@@ -80,6 +80,15 @@ public class ViewUtil{
         View view = ctrlLayout.findViewById(viewId);
         //noinspection unchecked
         return (T) view;
+    }
+
+    public void addView(View screen, ConstraintLayout playerLayout) {
+        ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(
+                ConstraintLayout.LayoutParams.MATCH_PARENT,
+                ConstraintLayout.LayoutParams.MATCH_PARENT
+        );
+        screen.setLayoutParams(layoutParams);
+        playerLayout.addView(screen);
     }
 }
 

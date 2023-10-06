@@ -3,26 +3,19 @@ package com.github.jaykkumar01.watchparty;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PictureInPictureParams;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.util.Rational;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
-import android.webkit.PermissionRequest;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,6 +38,8 @@ import com.github.jaykkumar01.watchparty.helpers.PlayerManagement;
 import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
 import com.github.jaykkumar01.watchparty.interfaces.FirebaseListener;
 import com.github.jaykkumar01.watchparty.libs.OnlinePlayerView;
+import com.github.jaykkumar01.watchparty.libs.models.YouTubeData;
+import com.github.jaykkumar01.watchparty.libs.utils.YouTubeUtil;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
 import com.github.jaykkumar01.watchparty.models.ListenerData;
 import com.github.jaykkumar01.watchparty.models.OnlineVideo;
@@ -57,11 +52,11 @@ import com.github.jaykkumar01.watchparty.utils.AutoRotate;
 import com.github.jaykkumar01.watchparty.utils.ChatUtil;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.PickerUtil;
+import com.github.jaykkumar01.watchparty.libs.utils.YouTubeAPI;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @OptIn(markerClass = UnstableApi.class)
 public class PlayerActivity extends AppCompatActivity {
@@ -94,11 +89,19 @@ public class PlayerActivity extends AppCompatActivity {
 
     private PlayerManagement playerManagement;
     private OnlinePlayerView onlinePlayerView;
+    private YouTubeData youTubeData;
 
     public interface Listener{
+
         void onToggleMic();
         void onDisconnect();
         void onToggleDeafen();
+
+        void onShow(boolean b);
+
+        void onPip();
+
+        void onChatClick();
     }
 
 
@@ -194,13 +197,38 @@ public class PlayerActivity extends AppCompatActivity {
             return;
         }
         String url = youtubeUrlET.getText().toString();
+//        Toast.makeText(this, ""+ YouTubeUtil.extractVideoId(url), Toast.LENGTH_SHORT).show();
+        youTubeData = new YouTubeData(url,null);
+        joinYouTubeVideo(null);
+
         OnlineVideo onlineVideo = new OnlineVideo(userModel.getUserId(),userModel.getName(),url);
-        FirebaseUtils.updateOnlineVideo(room.getCode(), onlineVideo, new FirebaseListener() {
-            @Override
-            public void onComplete(boolean successful, ListenerData data) {
-                Toast.makeText(PlayerActivity.this, "YouTube url created!", Toast.LENGTH_SHORT).show();
+
+        YouTubeAPI youTubeAPI = new YouTubeAPI(this,url);
+        youTubeAPI.setListener((success, youTubeData) -> {
+            if (success){
+                onlineVideo.setYouTubeData(youTubeData);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        FirebaseUtils.updateOnlineVideo(room.getCode(), onlineVideo, (successful, data) ->
+                                Toast.makeText(PlayerActivity.this, "Current YouTube video updated!", Toast.LENGTH_SHORT).show());
+                    }
+                });
+
+            } else {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(PlayerActivity.this, "couldn't get details", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             }
         });
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(youTubeAPI);
+
 
     }
 
@@ -212,9 +240,11 @@ public class PlayerActivity extends AppCompatActivity {
             public void onComplete(boolean successful, ListenerData data) {
                 if (successful){
                     currentOnlineVideoTxt.setVisibility(View.VISIBLE);
-                    currentOnlineVideoTxt.setText("Current Url: "+data.getOnlineVideo().getYoutubeUrl());
+                    youTubeData = data.getOnlineVideo().getYouTubeData();
+                    currentOnlineVideoTxt.setText("Current Video: "+youTubeData.getTitle());
                 }else{
                     currentOnlineVideoTxt.setVisibility(View.GONE);
+                    youTubeData = null;
                 }
             }
         });
@@ -225,6 +255,32 @@ public class PlayerActivity extends AppCompatActivity {
     private void setUpListener() {
 
         listener = new Listener() {
+            @Override
+            public void onChatClick() {
+                runOnUiThread(() -> {
+                    if (partyLayout.getVisibility() != View.VISIBLE){
+                        chatUtil.activate(true);
+                    }else{
+                        chatUtil.disable(true);
+                    }
+                });
+            }
+
+            @Override
+            public void onPip() {
+                pip = true;
+            }
+
+            @Override
+            public void onShow(boolean b) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(PlayerActivity.this, ""+b, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            }
 
             @Override
             public void onToggleMic() {
@@ -242,24 +298,6 @@ public class PlayerActivity extends AppCompatActivity {
             }
         };
     }
-
-
-
-
-
-
-
-
-//    @Override
-//    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-//        super.onConfigurationChanged(newConfig);
-//        Menu.changeMenu(this, newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
-//    }
-
-
-
-
-
 
 
     public void sendMessage(View view) {
@@ -324,7 +362,7 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     public void playAndPause(View view) {
-        playerManagement.playAndPause();
+
     }
 
 
@@ -341,19 +379,19 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     public void fullScreen(View view) {
-        playerManagement.fullScreen();
     }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         OnlinePlayerView.listener.onConfigChange(newConfig);
-        ImageView fullscreen = (ImageView) findViewById(R.id.exo_screen);
+        PlayerManagement.listener.onConfigChange(newConfig);
         View decorView = getWindow().getDecorView();
+        hideSoftKeyboard();
+
 
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-            fullscreen.setImageResource(R.drawable.fullscreen_exit);
             hideLayout(true);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -367,7 +405,6 @@ public class PlayerActivity extends AppCompatActivity {
         }
         else {
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-            fullscreen.setImageResource(R.drawable.fullscreen);
             hideLayout(false);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -378,6 +415,19 @@ public class PlayerActivity extends AppCompatActivity {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
             chatUtil.disable(false);
         }
+    }
+
+    private void hideSoftKeyboard() {
+        try {
+            View view = this.getCurrentFocus();
+            if (view != null) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private void hideLayout(boolean hide) {
@@ -397,11 +447,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     public void chat(View view) {
 
-        if (partyLayout.getVisibility() != View.VISIBLE){
-            chatUtil.activate(true);
-        }else{
-            chatUtil.disable(true);
-        }
+
 
     }
 
@@ -493,28 +539,6 @@ public class PlayerActivity extends AppCompatActivity {
 
 
 
-
-    public void changeVideo(View view){
-        playerManagement.changeVideo();
-    }
-
-
-    public void lock(View view){
-        findViewById(R.id.ctrlLayout).setVisibility(View.GONE);
-        findViewById(R.id.big_lock).setVisibility(View.VISIBLE);
-    }
-    public void unlock(View view) {
-        view.setVisibility(View.GONE);
-        findViewById(R.id.ctrlLayout).setVisibility(View.VISIBLE);
-    }
-
-    public void cc(View view){
-        playerManagement.CC();
-    }
-    public void muteUnmute(View view){
-        playerManagement.muteUnmute();
-    }
-
     public void enterPIP(View view){
         Display d = getWindowManager().getDefaultDisplay();
         Point p = new Point();
@@ -530,11 +554,6 @@ public class PlayerActivity extends AppCompatActivity {
             enterPictureInPictureMode(pipBuilder.build());
             pip = true;
         }
-
-    }
-
-    public void changeSpeed(View view){
-        playerManagement.changeSpeed();
 
     }
     
@@ -620,54 +639,17 @@ public class PlayerActivity extends AppCompatActivity {
 
     @SuppressLint("ClickableViewAccessibility")
     public void joinYouTubeVideo(View view) {
-        onlinePlayerView.start();
+
+        if (youTubeData == null){
+            Toast.makeText(this, "No current video", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+
+        onlinePlayerView.start(youTubeData.getLink());
         addMediaLayout.setVisibility(View.GONE);
         allPlayerLayout.setVisibility(View.VISIBLE);
         onlinePlayerLayout.setVisibility(View.VISIBLE);
-
-        //webView.setOnTouchListener(webTouchGesture);
-    }
-
-    public void webPlayPause(View view) {
-
-
-
-    }
-
-
-    public void webMuteUnmute(View view) {
-
-    }
-
-    public void webViewClick(View view) {
-    }
-
-    public void webLock(View view) {
-        onlinePlayerLayout.findViewById(R.id.ctrlLayout).setVisibility(View.GONE);
-        onlinePlayerLayout.findViewById(R.id.big_lock).setVisibility(View.VISIBLE);
-    }
-
-    public void webcc(View view) {
-    }
-
-    public void enterWebPIP(View view) {
-        Display d = getWindowManager().getDefaultDisplay();
-        Point p = new Point();
-        d.getSize(p);
-        Rational ratio = new Rational(16,9);
-        //ratio = new Rational(dimension(vidUri)[0],dimension(vidUri)[1]);
-        PictureInPictureParams.Builder pipBuilder = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            onlinePlayerLayout.setVisibility(View.GONE);
-            pipBuilder = new PictureInPictureParams.Builder();
-            pipBuilder.setAspectRatio(ratio).build();
-            enterPictureInPictureMode(pipBuilder.build());
-//            webpip = true;
-        }
-    }
-
-    public void webUnlock(View view) {
-        view.setVisibility(View.GONE);
-        onlinePlayerLayout.findViewById(R.id.ctrlLayout).setVisibility(View.VISIBLE);
     }
 }

@@ -13,21 +13,26 @@ public class OnlinePlayerBridge {
     }
 
     @JavascriptInterface
+    public void log(String str){
+        Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
+    }
+
+    @JavascriptInterface
     public void onReady(){
         OnlinePlayerView.listener.onReady();
     }
 
     @JavascriptInterface
     public void updateCurrentDuration(int currentDuration){
-        OnlinePlayerView.listener.onUpdateCurrentDuration(currentDuration);
+        //OnlinePlayerView.listener.onUpdateCurrentDuration(currentDuration);
     }
 
     @JavascriptInterface
     public void updateTotalDuration(int totalDuration) {
-        OnlinePlayerView.listener.onUpdateTotalDuration(totalDuration);
+        //OnlinePlayerView.listener.onUpdateTotalDuration(totalDuration);
     }
     @JavascriptInterface
     public void sendVideoQuality(String str){
-        Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
     }
 }

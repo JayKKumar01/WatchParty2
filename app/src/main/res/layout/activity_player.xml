@@ -278,15 +278,6 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
-                <WebView
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:id="@+id/onlinePlayerWebView"
-                    android:onClick="webViewClick"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"/>
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -354,7 +345,7 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:id="@+id/offlineMediaLayout"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -414,7 +405,7 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:id="@+id/onlineMediaLayout"
-                android:visibility="visible"
+                android:visibility="gone"
                 android:background="@color/discord_bg"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"

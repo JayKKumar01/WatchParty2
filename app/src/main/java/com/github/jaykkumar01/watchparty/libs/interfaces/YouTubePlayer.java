@@ -11,4 +11,8 @@ public interface YouTubePlayer {
     void setPlaybackRate(float value);
     void setPlaybackQuality(String value);
     void addListener(YouTubePlayerListener playerListener);
+
+    void clean();
+
+    void createPlayer(String link);
 }

@@ -1,9 +1,13 @@
 package com.github.jaykkumar01.watchparty.models;
 
+import com.github.jaykkumar01.watchparty.libs.models.YouTubeData;
+
 public class OnlineVideo {
     private String userId;
     private String name;
     private String youtubeUrl;
+
+    private YouTubeData youTubeData;
 
     public OnlineVideo() {
         // Empty constructor required by Firebase
@@ -14,6 +18,14 @@ public class OnlineVideo {
         this.userId = userId;
         this.name = name;
         this.youtubeUrl = youtubeUrl;
+    }
+
+    public YouTubeData getYouTubeData() {
+        return youTubeData;
+    }
+
+    public void setYouTubeData(YouTubeData youTubeData) {
+        this.youTubeData = youTubeData;
     }
 
     public String getUserId() {

@@ -4,7 +4,7 @@ var interval;
 function onYouTubeIframeAPIReady() {
     Android.onReady();
 //    createPlayer('R7aCOI4DuA0');
-    createPlayer('b3-gdDnybIg'); // Default video ID
+    //createPlayer('b3-gdDnybIg'); // Default video ID
 }
 
 function createPlayer(videoId) {
@@ -19,10 +19,10 @@ function createPlayer(videoId) {
         videoId: videoId,
         playerVars: {
             'autoplay': 1,
-            'controls': 0,
+            'controls': 1,
             'rel': 0,
             'modestbranding': 1,
-            'fs': 0
+            'fs': 1
         },
         events: {
             'onReady': onPlayerReady,
@@ -40,21 +40,22 @@ function getHeight() {
 }
 
 function onPlayerReady(event) {
-    sendVideoQuality();
+    //sendVideoQuality();
     // This event fires when the player is ready to receive API calls.
-    updateTotalDuration();
+    //updateTotalDuration();
     // Start updating the current duration only if the player is playing
-    interval = setInterval(function () {
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-            updateCurrentDuration();
-        }
-    }, 1000);
+//    interval = setInterval(function () {
+//        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+//            updateCurrentDuration();
+//        }
+//    }, 1000);
 }
 
 function onPlayerStateChange(event) {
     // This event fires whenever the player's state changes.
-    console.log('Player state changed:', event.data);
+
 }
+
 
 function updateCurrentDuration() {
     // Get the current video duration only if the player is playing
@@ -152,6 +153,15 @@ function enableControlsForDuration(durationInSeconds) {
     setTimeout(function() {
         player.setOption('controls', 0);
     }, durationInSeconds * 1000); // Convert duration to milliseconds
+}
+
+function clean() {
+    if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+        player.pauseVideo();
+        setTimeout(function() {
+            player.playVideo();
+        }, 500);
+    }
 }
 
 

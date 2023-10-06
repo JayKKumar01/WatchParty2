@@ -3,16 +3,23 @@ package com.github.jaykkumar01.watchparty.helpers;
 import static androidx.media3.common.Player.REPEAT_MODE_ONE;
 
 import android.app.Activity;
+import android.app.PictureInPictureParams;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.net.Uri;
+import android.os.Build;
+import android.util.Rational;
+import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackParameters;
@@ -22,6 +29,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.exoplayer.trackselection.TrackSelector;
 import androidx.media3.ui.PlayerView;
 
+import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.assets.TrackSelectionDialog;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
@@ -29,13 +37,44 @@ import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
 import com.github.jaykkumar01.watchparty.utils.TouchGesture;
 
-public class PlayerManagement {
+public class PlayerManagement implements View.OnClickListener {
+
+    @Override
+    public void onClick(View view) {
+        if (view == playPause){
+            playAndPause();
+        } else if (view == muteUnmute) {
+            muteUnmute();
+        } else if (view == imgCC) {
+            CC();
+        } else if (view == fullScreen) {
+            fullScreen();
+        } else if (view == lock) {
+            ctrlLayout.setVisibility(View.GONE);
+            bigLock.setVisibility(View.VISIBLE);
+        } else if (view == bigLock){
+            bigLock.setVisibility(View.GONE);
+            ctrlLayout.setVisibility(View.VISIBLE);
+        } else if (view == gear) {
+            changeVideo();
+        } else if (view == pip) {
+            enterPIP();
+        } else if (view == speed) {
+            changeSpeed();
+        } else if (view == imgChat){
+            PlayerActivity.listener.onChatClick();
+        }
+
+
+    }
 
     public interface Listener{
         void onSeekInfo(String id, long positionMs);
         void onPlayPauseInfo(String id, boolean isPlaying);
         void onPlaybackStateRequest(String id);
         void onPlaybackStateReceived(String id, boolean isPlaying, long positionMs);
+
+        void onConfigChange(Configuration newConfig);
     }
 
     public static Listener listener;
@@ -50,7 +89,9 @@ public class PlayerManagement {
     private PlayerView playerView;
     private ExoPlayer player;
     private final FragmentManager fragmentManager;
-    private ImageView playPause,muteUnmute,imgCC;
+    private ImageView playPause,muteUnmute,imgCC,fullScreen,lock,bigLock,gear,pip,speed;
+    private ConstraintLayout ctrlLayout,rootCtrlLayout;
+    private ImageView imgChat;
 
     public static void start(Context context){
         new PlayerManagement(context,null);
@@ -66,6 +107,16 @@ public class PlayerManagement {
 
     private Listener setListener() {
         return new Listener() {
+
+            @Override
+            public void onConfigChange(Configuration newConfig) {
+                if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+                    fullScreen.setImageResource(R.drawable.fullscreen_exit);
+                }else{
+                    fullScreen.setImageResource(R.drawable.fullscreen);
+                }
+
+            }
 
             @Override
             public void onSeekInfo(String id, long positionMs) {
@@ -142,6 +193,33 @@ public class PlayerManagement {
         playPause = findView(R.id.play_pause);
         muteUnmute = findView(R.id.exo_mute_unmute);
         imgCC = findView(R.id.exo_caption);
+        fullScreen = findView(R.id.exo_screen);
+        ctrlLayout = findView(R.id.ctrlLayout);
+        rootCtrlLayout = findView(R.id.root_exo_layout);
+        lock = findView(R.id.exo_lock);
+        bigLock = findView(R.id.big_lock);
+        gear = findView(R.id.exo_vidTrack);
+        pip = findView(R.id.exo_pip);
+        speed = findView(R.id.exo_speed);
+        imgChat = findView(R.id.exo_chat);
+
+        setOnClickListenerToImageViews(rootCtrlLayout,this);
+    }
+
+    public void setOnClickListenerToImageViews(View view, View.OnClickListener listener) {
+        if (view instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) view;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                View child = viewGroup.getChildAt(i);
+                if (child instanceof ImageView) {
+                    ImageView imageView = (ImageView) child;
+                    imageView.setOnClickListener(listener);
+                }
+                if (child instanceof ViewGroup) {
+                    setOnClickListenerToImageViews(child, listener);
+                }
+            }
+        }
     }
 
     public void fullScreen() {
@@ -153,6 +231,24 @@ public class PlayerManagement {
 
     public void playAndPause() {
         playAndPause(player.isPlaying());
+    }
+
+    public void enterPIP(){
+        Display d = activity.getWindowManager().getDefaultDisplay();
+        Point p = new Point();
+        d.getSize(p);
+        Rational ratio = new Rational(16,9);
+        //ratio = new Rational(dimension(vidUri)[0],dimension(vidUri)[1]);
+        PictureInPictureParams.Builder pipBuilder = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            hideController();
+
+            pipBuilder = new PictureInPictureParams.Builder();
+            pipBuilder.setAspectRatio(ratio).build();
+            activity.enterPictureInPictureMode(pipBuilder.build());
+            PlayerActivity.listener.onPip();
+        }
+
     }
     public void changeVideo() {
         if (!isShowingTrackSelectionDialog && TrackSelectionDialog.willHaveContent(player)) {
