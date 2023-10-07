@@ -41,11 +41,8 @@ import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.ObjectUtil;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -66,6 +63,7 @@ public class CallService extends Service implements Data {
     List<MessageModel> messageModelList = new ArrayList<>();
     private PendingIntent mutePendingIntent, hangupPendingIntent, deafenPendingIntent;
     private NotificationCompat.Builder builder;
+    private String txt;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -115,7 +113,7 @@ public class CallService extends Service implements Data {
                     }
                     int read = audioRecord.read(buffer, 0, BUFFER_SIZE_IN_BYTES);
 
-                    FileModel file = new FileModel(buffer,read,millis);
+//                    FileModel file = new FileModel(buffer,read,millis);
 
                     if (!Base.isNetworkAvailable(CallService.this)) {
                         continue;
@@ -123,7 +121,7 @@ public class CallService extends Service implements Data {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callJavaScriptBytes("sendFile",file);
+                            callJavaScript("sendFile",buffer,read,millis);
                         }
                     });
                 }
@@ -206,7 +204,7 @@ public class CallService extends Service implements Data {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScriptBytes("sendMessage",messageModel);
+                        callJavaScript("sendMessage",messageModel.getName(),messageModel.getMessage(),messageModel.getTimeMillis());
                     }
                 });
             }
@@ -345,24 +343,32 @@ public class CallService extends Service implements Data {
         return null;
     }
 
-    public void callJavaScript(String func,Object... args) {
+    public void callJavaScript(String func, Object... args) {
         StringBuilder argString = new StringBuilder();
-        for (Object arg : args) {
-            if (arg instanceof String) {
-                argString.append("'").append(arg).append("'");
+        if (args.length > 0) {
+            if (args[0] instanceof String) {
+                argString.append(ObjectUtil.preserveString((String) args[0]));
+            } else if (args[0] instanceof byte[]) {
+                argString.append(ObjectUtil.preserveBytes((byte[]) args[0]));
             } else {
-                argString.append(arg.toString());
+                argString.append(args[0]);
             }
-            argString.append(",");
         }
-        if (argString.length() > 0) {
-            argString.deleteCharAt(argString.length() - 1); // Remove the trailing comma
+        for (int i = 1; i < args.length; i++) {
+            argString.append(",");
+            if (args[i] instanceof String) {
+                argString.append(ObjectUtil.preserveString((String) args[i]));
+            } else if (args[i] instanceof byte[]) {
+                argString.append(ObjectUtil.preserveBytes((byte[]) args[i]));
+            } else {
+                argString.append(args[i]);
+            }
         }
         final String javascriptCommand = String.format("javascript:%s(%s)", func, argString.toString());
         webView.loadUrl(javascriptCommand);
     }
 
-    public void callJavaScriptBytes(String func,Object obj) {
+    public void callJavaScriptObj(String func, Object obj) {
         String javascriptCommand = String.format("javascript:%s(%s)", func, ObjectUtil.objectToStr(obj));
         webView.loadUrl(javascriptCommand);
     }

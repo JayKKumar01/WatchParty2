@@ -1,6 +1,5 @@
 package com.github.jaykkumar01.watchparty.models;
 
-import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -11,12 +10,12 @@ public class AudioPlayerModel implements Data{
 
     AudioTrack audioTrack;
 
-    int offset;
+    long offset;
     String id;
 
     public AudioPlayerModel(String id,long millis) {
         this.id = id;
-        offset = (int) (System.currentTimeMillis() - millis);
+        offset = System.currentTimeMillis() - millis;
         audioTrack = new AudioTrack(
                 AudioManager.STREAM_MUSIC,
                 SAMPLE_RATE,
@@ -27,7 +26,17 @@ public class AudioPlayerModel implements Data{
         audioTrack.play();
     }
 
-    public AudioTrack getAudioTrack() {
+    public void processFile(byte[] bytes, int read, long millis) {
+
+        long diff = System.currentTimeMillis() - millis - offset;
+        if (diff > 300){
+            return;
+        }
+
+        audioTrack.write(bytes, 0, read);
+    }
+
+public AudioTrack getAudioTrack() {
         return audioTrack;
     }
 
@@ -35,11 +44,11 @@ public class AudioPlayerModel implements Data{
         this.audioTrack = audioTrack;
     }
 
-    public int getOffset() {
+    public long getOffset() {
         return offset;
     }
 
-    public void setOffset(int offset) {
+    public void setOffset(long offset) {
         this.offset = offset;
     }
 

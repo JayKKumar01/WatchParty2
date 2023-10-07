@@ -108,6 +108,8 @@ public class PlayerActivity extends AppCompatActivity {
         void onChatClick();
 
         void onMessage(String message);
+
+        void onResult(String s);
     }
 
 
@@ -261,6 +263,17 @@ public class PlayerActivity extends AppCompatActivity {
     private void setUpListener() {
 
         listener = new Listener() {
+
+            @Override
+            public void onResult(String s) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(PlayerActivity.this, s, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
             @Override
             public void onMessage(String message) {
                 runOnUiThread(new Runnable() {

@@ -20,13 +20,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class JavaScriptInterface implements Data{
     Context context;
 
-    HashMap<String, AudioPlayerModel> playerMap = new HashMap<>();
+    private final ConcurrentHashMap<String, AudioPlayerModel> playerMap = new ConcurrentHashMap<>();
 
     ExecutorService executorService = Executors.newSingleThreadExecutor();
     private List<MessageModel> messageModelList = new ArrayList<>();
@@ -50,39 +51,24 @@ public class JavaScriptInterface implements Data{
 
 
     @JavascriptInterface
-    public void showFile(String id,byte[] bytesModel){
-        FileModel fileModel = (FileModel) ObjectUtil.bytesToObj(bytesModel);
-        if (!playerMap.containsKey(id)){
-            AudioPlayerModel model = new AudioPlayerModel(id,fileModel.getMillis());
-            playerMap.put(id,model);
-        }
-
-        AudioPlayerModel audioPlayerModel = playerMap.get(id);
-        if (audioPlayerModel == null){
+    public void showFile(String id,byte[] bytes,int read, long millis){
+        if (Info.isDeafen){
             return;
         }
+        playerMap.putIfAbsent(id, new AudioPlayerModel(id, millis));
 
+        AudioPlayerModel audioPlayerModel = playerMap.get(id);
 
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-
-                long diff = System.currentTimeMillis() - fileModel.getMillis() - audioPlayerModel.getOffset();
-                if (diff > 600){
-                    return;
-                }
-
-                if (Info.isDeafen){
-                    return;
-                }
-                audioPlayerModel.getAudioTrack().write(fileModel.getBytes(),0,fileModel.getRead());
-            }
+        executorService.execute(() -> {
+            audioPlayerModel.processFile(bytes,read,millis);
         });
     }
 
     @JavascriptInterface
-    public void showMessage(String id, byte[] bytes){
-        MessageModel messageModel = (MessageModel) ObjectUtil.bytesToObj(bytes);
+    public void showMessage(String id, byte[] nameBytes, byte[] msgBytes, long millis){
+        MessageModel messageModel = new MessageModel(id,ObjectUtil.restoreString(msgBytes));
+        messageModel.setName(ObjectUtil.restoreString(nameBytes));
+        messageModel.setTimeMillis(millis);
 
         PeerManagement.listener.onReceiveMessage(messageModel);
         RecycleViewManagement.listener.onReceiveMessage(messageModel);
@@ -104,12 +90,12 @@ public class JavaScriptInterface implements Data{
         PlayerManagement.listener.onPlaybackStateReceived(id,isPlaying,positionMs);
     }
     @JavascriptInterface
-    public void handleActivityStop(String id,String name, long millis){
+    public void handleActivityStop(String id,byte[] nameBytes, long millis){
         PlayerManagement.listener.onPlayPauseInfo(id,false);
-        Toast.makeText(context, name+" left the party!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, ObjectUtil.restoreString(nameBytes)+" left the party!", Toast.LENGTH_SHORT).show();
     }
     @JavascriptInterface
-    public void handleJoinedPartyAgain(String id,String name, long millis){
-        Toast.makeText(context, name+" joined the party again!", Toast.LENGTH_SHORT).show();
+    public void handleJoinedPartyAgain(String id,byte[] nameBytes, long millis){
+        Toast.makeText(context, ObjectUtil.restoreString(nameBytes)+" joined the party again!", Toast.LENGTH_SHORT).show();
     }
 }

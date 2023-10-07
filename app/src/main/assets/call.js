@@ -2,7 +2,8 @@ let peer = null;
 let connections = [];
 let myId = null;
 
-function init(userId) {
+function init(userIdBytes) {
+var userId = byteArrayToString(userIdBytes);
     peer = new Peer(userId, {
         port: 443,
         path: '/',
@@ -29,7 +30,8 @@ function handleConnection(connection) {
 //    Android.send("Connected: " + connection.peer);
 }
 
-function connect(otherId) {
+function connect(otherIdBytes) {
+    var otherId = byteArrayToString(otherIdBytes);
     let conn = peer.connect(otherId, { reliable: true }); // Declare conn using 'let'
 
     conn.on('open', () => {
@@ -120,10 +122,10 @@ function sendJoinedPartyAgain(name, millis) {
 
 function handleData(data) {
     if (data.type === 'message') {
-        Android.showMessage(data.id, data.bytes);
+        Android.showMessage(data.id, data.name, data.message, data.millis);
     }
      else if (data.type === 'file') {
-        Android.showFile(data.id, data.bytes);
+        Android.showFile(data.id, data.bytes, data.read, data.millis);
     } else if (data.type === 'seekInfo') {
         Android.handleSeekInfo(data.id, data.positionMs);
     } else if (data.type === 'playPauseInfo') {
@@ -139,7 +141,14 @@ function handleData(data) {
     }
 }
 
-function sendPlaybackState(id, isPlaying, positionMs) {
+function byteArrayToString(byteArray) {
+    const decoder = new TextDecoder('utf-8');
+    const utf8Text = decoder.decode(new Uint8Array(byteArray));
+    return utf8Text;
+}
+
+function sendPlaybackState(idBytes, isPlaying, positionMs) {
+    var id = byteArrayToString(idBytes);
     var data = {
         type: 'playbackState',
         id: myId,
@@ -157,35 +166,16 @@ function sendPlaybackState(id, isPlaying, positionMs) {
 
 
 
-//function sendMessage(name, message, millis) {
-//    var data = {
-//        type: 'message',
-//        id: myId,
-//        name: name,
-//        message: message,
-//        millis: millis
-//    };
-//
-//    // Convert the data object to a JSON string
-//    var jsonString = JSON.stringify(data);
-//
-//    // Loop through all connections and send the JSON string to each one
-//    for (const connection of connections) {
-//        if (connection && connection.open) {
-//            connection.send(jsonString);
-//        }
-//    }
-//}
-
-
-function sendMessage(msg) {
+function sendMessage(name, message, millis) {
     var data = {
         type: 'message',
         id: myId,
-        bytes: msg
+        name: name,
+        message: message,
+        millis: millis
     };
 
-    // Loop through all connections and send the message data to each one
+    // Loop through all connections and send the JSON string to each one
     for (const connection of connections) {
         if (connection && connection.open) {
             connection.send(data);
@@ -193,11 +183,29 @@ function sendMessage(msg) {
     }
 }
 
-function sendFile(files) {
+
+//function sendMessage(msg) {
+//    var data = {
+//        type: 'message',
+//        id: myId,
+//        bytes: msg
+//    };
+//
+//    // Loop through all connections and send the message data to each one
+//    for (const connection of connections) {
+//        if (connection && connection.open) {
+//            connection.send(data);
+//        }
+//    }
+//}
+
+function sendFile(bytes, read, millis) {
     var data = {
         type: 'file',
         id: myId,
-        bytes: files
+        bytes: bytes,
+        read: read,
+        millis: millis
     };
 
     // Loop through all connections and send the file data to each one
