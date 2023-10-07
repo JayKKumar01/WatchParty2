@@ -3,16 +3,15 @@ package com.github.jaykkumar01.watchparty.utils;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.github.jaykkumar01.watchparty.R;
+import com.github.jaykkumar01.watchparty.assets.Complex;
+import com.github.jaykkumar01.watchparty.assets.FFT;
+import com.github.jaykkumar01.watchparty.interfaces.Data;
 
 import java.util.Random;
 
@@ -84,4 +83,8 @@ public class Base{
 
         return (float) (value * (double) deviceWidth / dpi * 0.18608773);
     }
+
+
+
+
 }

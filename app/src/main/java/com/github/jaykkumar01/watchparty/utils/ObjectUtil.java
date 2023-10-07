@@ -60,7 +60,7 @@ public class ObjectUtil {
             byte[] b = byteStream.toByteArray();
 
             if (count++ < 5){
-                PlayerActivity.listener.onResult(preservedBytes.length+ " : "+b.length);
+                //PlayerActivity.listener.onResult(preservedBytes.length+ " : "+b.length);
             }
 
 

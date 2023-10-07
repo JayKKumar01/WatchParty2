@@ -10,13 +10,22 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.jaykkumar01.watchparty.R;
+import com.github.jaykkumar01.watchparty.interfaces.LoudnessListener;
 import com.github.jaykkumar01.watchparty.models.UserModel;
+import com.github.jaykkumar01.watchparty.utils.LoudnessUtil;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
     private List<UserModel> userList;
+
+    private HashMap<String,LoudnessListener> listenerHashMap = new HashMap<>();
+
+    public LoudnessListener getLoudnessListener(String id){
+        return listenerHashMap.get(id);
+    }
 
     public UserAdapter(List<UserModel> userList) {
         this.userList = userList;
@@ -48,7 +57,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
                 holder.mic.setImageResource(R.drawable.mic_on_small);
             }
         }
-
+        LoudnessUtil loudnessUtil = new LoudnessUtil(holder.view);
+        loudnessUtil.setListener(new LoudnessListener() {
+            @Override
+            public void onUpdate(float loudness) {
+                if (!user.isMute() && !user.isDeafen()){
+                    loudnessUtil.resizeHeight(loudness);
+                }
+            }
+        });
+        listenerHashMap.put(user.getUserId(), loudnessUtil.getListener());
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.adapters.ChatAdapter;
 import com.github.jaykkumar01.watchparty.adapters.UserAdapter;
+import com.github.jaykkumar01.watchparty.interfaces.LoudnessListener;
 import com.github.jaykkumar01.watchparty.interfaces.MessageListener;
 import com.github.jaykkumar01.watchparty.models.EventListenerData;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
@@ -23,6 +24,7 @@ import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public class RecycleViewManagement {
@@ -33,6 +35,7 @@ public class RecycleViewManagement {
 
     public interface Listener{
         void onReceiveMessage(MessageModel messageModel);
+        void onLoudnessUpdate(String id,float loudness);
     }
 
     public static Listener listener;
@@ -60,6 +63,20 @@ public class RecycleViewManagement {
     @SuppressLint("NotifyDataSetChanged")
     private Listener setListener() {
         return new Listener() {
+            @Override
+            public void onLoudnessUpdate(String id,float loudness) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        LoudnessListener listener = userAdapter.getLoudnessListener(id);
+                        if (listener != null) {
+                            listener.onUpdate(loudness);
+                        }
+                    }
+                });
+
+            }
+
             @Override
             public void onReceiveMessage(MessageModel messageModel) {
                 activity.runOnUiThread(() -> {

@@ -28,6 +28,7 @@ import androidx.core.app.NotificationManagerCompat;
 import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.enums.RoomType;
+import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
 import com.github.jaykkumar01.watchparty.interfaces.CallServiceListener;
 import com.github.jaykkumar01.watchparty.interfaces.Data;
 import com.github.jaykkumar01.watchparty.interfaces.JavaScriptInterface;
@@ -37,6 +38,7 @@ import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
 import com.github.jaykkumar01.watchparty.receivers.NotificationReceiver;
 import com.github.jaykkumar01.watchparty.update.Info;
+import com.github.jaykkumar01.watchparty.utils.AudioCalculator;
 import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.FirebaseUtils;
 import com.github.jaykkumar01.watchparty.utils.ObjectUtil;
@@ -64,6 +66,7 @@ public class CallService extends Service implements Data {
     private PendingIntent mutePendingIntent, hangupPendingIntent, deafenPendingIntent;
     private NotificationCompat.Builder builder;
     private String txt;
+    private final AudioCalculator audioCalculator = new AudioCalculator();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -112,6 +115,10 @@ public class CallService extends Service implements Data {
                         continue;
                     }
                     int read = audioRecord.read(buffer, 0, BUFFER_SIZE_IN_BYTES);
+                    float loudness = audioCalculator.getLoudness(buffer);
+
+
+                    RecycleViewManagement.listener.onLoudnessUpdate(userModel.getUserId(),loudness);
 
 //                    FileModel file = new FileModel(buffer,read,millis);
 
@@ -121,7 +128,7 @@ public class CallService extends Service implements Data {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callJavaScript("sendFile",buffer,read,millis);
+                            callJavaScript("sendFile",buffer,read,millis,loudness);
                         }
                     });
                 }

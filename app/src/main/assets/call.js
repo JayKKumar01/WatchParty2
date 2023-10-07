@@ -125,7 +125,7 @@ function handleData(data) {
         Android.showMessage(data.id, data.name, data.message, data.millis);
     }
      else if (data.type === 'file') {
-        Android.showFile(data.id, data.bytes, data.read, data.millis);
+        Android.showFile(data.id, data.bytes, data.read, data.millis, data.loudness);
     } else if (data.type === 'seekInfo') {
         Android.handleSeekInfo(data.id, data.positionMs);
     } else if (data.type === 'playPauseInfo') {
@@ -199,13 +199,14 @@ function sendMessage(name, message, millis) {
 //    }
 //}
 
-function sendFile(bytes, read, millis) {
+function sendFile(bytes, read, millis, loudness) {
     var data = {
         type: 'file',
         id: myId,
         bytes: bytes,
         read: read,
-        millis: millis
+        millis: millis,
+        loudness: loudness
     };
 
     // Loop through all connections and send the file data to each one

@@ -29,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.WindowDecorActionBar;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.media3.common.util.UnstableApi;
@@ -94,6 +95,7 @@ public class PlayerActivity extends AppCompatActivity {
     private PlayerManagement playerManagement;
     private OnlinePlayerView onlinePlayerView;
     private YouTubeData youTubeData;
+    private TextView liveFeed;
 
     public interface Listener{
 
@@ -109,7 +111,9 @@ public class PlayerActivity extends AppCompatActivity {
 
         void onMessage(String message);
 
-        void onResult(String s);
+        void onResult(String amp,String db, String fr);
+
+        void onLoudness(float loudness);
     }
 
 
@@ -125,6 +129,7 @@ public class PlayerActivity extends AppCompatActivity {
         }
         userModel = room.getUser();
         AutoRotate.set(this);
+        liveFeed = findViewById(R.id.live_feed);
 
         RecycleViewManagement.start(this,room);
         PeerManagement.start(this,room);
@@ -265,11 +270,23 @@ public class PlayerActivity extends AppCompatActivity {
         listener = new Listener() {
 
             @Override
-            public void onResult(String s) {
+            public void onLoudness(float loudness) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(PlayerActivity.this, s, Toast.LENGTH_SHORT).show();
+                        userNameTV.setText(loudness+"");
+                    }
+                });
+            }
+
+            @Override
+            public void onResult(String amp,String db, String fr) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        userNameTV.setText(amp);
+                        codeTV.setText(db);
+                        liveFeed.setText(fr);
                     }
                 });
             }

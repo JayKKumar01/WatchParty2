@@ -13,6 +13,8 @@ import com.github.jaykkumar01.watchparty.models.FileModel;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
+import com.github.jaykkumar01.watchparty.utils.AudioCalculator;
+import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.ObjectUtil;
 
 import java.nio.charset.StandardCharsets;
@@ -20,12 +22,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class JavaScriptInterface implements Data{
     Context context;
+
 
     private final ConcurrentHashMap<String, AudioPlayerModel> playerMap = new ConcurrentHashMap<>();
 
@@ -51,10 +55,15 @@ public class JavaScriptInterface implements Data{
 
 
     @JavascriptInterface
-    public void showFile(String id,byte[] bytes,int read, long millis){
+    public void showFile(String id,byte[] bytes,int read, long millis, float loudness){
         if (Info.isDeafen){
             return;
         }
+
+
+        RecycleViewManagement.listener.onLoudnessUpdate(id,loudness);
+
+
         playerMap.putIfAbsent(id, new AudioPlayerModel(id, millis));
 
         AudioPlayerModel audioPlayerModel = playerMap.get(id);

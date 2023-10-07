@@ -14,6 +14,8 @@ public interface Data {
     int SAMPLE_RATE = 22000;
     int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+    int BYTES_PER_SAMPLE = 2; // 16-bit audio (2 bytes per sample)
     //    int BUFFER_SIZE_IN_BYTES = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
     int BUFFER_SIZE_IN_BYTES = 8 * 1024;
+    float MAX_AMP = 32768;
 }
