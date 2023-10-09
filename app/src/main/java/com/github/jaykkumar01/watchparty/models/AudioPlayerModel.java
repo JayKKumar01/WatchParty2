@@ -4,6 +4,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 
+import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
 import com.github.jaykkumar01.watchparty.interfaces.Data;
 
 public class AudioPlayerModel implements Data{
@@ -26,14 +27,14 @@ public class AudioPlayerModel implements Data{
         audioTrack.play();
     }
 
-    public void processFile(byte[] bytes, int read, long millis) {
+    public void processFile(byte[] bytes, int read, long millis, String id, float loudness) {
 
         long diff = System.currentTimeMillis() - millis - offset;
         if (diff > 300){
             return;
         }
-
         audioTrack.write(bytes, 0, read);
+        RecycleViewManagement.listener.onLoudnessUpdate(id,loudness);
     }
 
 public AudioTrack getAudioTrack() {

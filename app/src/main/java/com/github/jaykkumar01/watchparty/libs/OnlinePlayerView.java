@@ -33,6 +33,7 @@ import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.libs.interfaces.YouTubePlayer;
 import com.github.jaykkumar01.watchparty.libs.utils.ViewUtil;
+import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
 import com.github.jaykkumar01.watchparty.utils.WebTouchGesture;
@@ -60,6 +61,10 @@ public class OnlinePlayerView{
         void onReady();
 
         void onConfigChange(Configuration newConfig);
+
+        void onPlayerReady();
+
+        void onPlaybackStateRequest(String id);
     }
     public static Listener listener;
 
@@ -101,6 +106,25 @@ public class OnlinePlayerView{
             public void onReady() {
                 youTubePlayer = new YouTubePlayerImpl(webView);
                 youTubePlayer.createPlayer(link);
+            }
+
+            @Override
+            public void onPlayerReady() {
+                CallService.listener.onSendPlaybackStateRequest(1);
+            }
+
+            @Override
+            public void onPlaybackStateRequest(String id) {
+                if (youTubePlayer == null){
+                    return;
+                }
+                youTubePlayer.updatePlaybackState();
+//                activity.runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        //CallService.listener.onSendPlaybackState(id,isPlaying,currentPosition());
+//                    }
+//                });
             }
 
             @Override

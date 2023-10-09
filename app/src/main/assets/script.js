@@ -39,16 +39,15 @@ function getHeight() {
     return document.body.clientHeight;
 }
 
+function updatePlaybackState() {
+    var isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
+    var currentPosition = player.getCurrentTime();
+    Android.onPlaybackUpdate(isPlaying, currentPosition);
+}
+
+
 function onPlayerReady(event) {
-    //sendVideoQuality();
-    // This event fires when the player is ready to receive API calls.
-    //updateTotalDuration();
-    // Start updating the current duration only if the player is playing
-//    interval = setInterval(function () {
-//        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-//            updateCurrentDuration();
-//        }
-//    }, 1000);
+    Android.onPlayerReady();
 }
 
 function onPlayerStateChange(event) {

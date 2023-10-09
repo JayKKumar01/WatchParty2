@@ -31,8 +31,9 @@ import com.github.jaykkumar01.watchparty.enums.RoomType;
 import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
 import com.github.jaykkumar01.watchparty.interfaces.CallServiceListener;
 import com.github.jaykkumar01.watchparty.interfaces.Data;
-import com.github.jaykkumar01.watchparty.interfaces.JavaScriptInterface;
-import com.github.jaykkumar01.watchparty.models.FileModel;
+import com.github.jaykkumar01.watchparty.javascriptinterfaces.ExoPlayerBridge;
+import com.github.jaykkumar01.watchparty.javascriptinterfaces.JavaScriptInterface;
+import com.github.jaykkumar01.watchparty.javascriptinterfaces.YouTubePlayerBridge;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.models.Room;
 import com.github.jaykkumar01.watchparty.models.UserModel;
@@ -247,11 +248,11 @@ public class CallService extends Service implements Data {
             }
 
             @Override
-            public void onSendPlaybackStateRequest() {
+            public void onSendPlaybackStateRequest(int i) {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("sendPlaybackStateRequest");
+                        callJavaScript("sendPlaybackStateRequest",i);
                     }
                 });
             }
@@ -304,6 +305,8 @@ public class CallService extends Service implements Data {
         });
         javascriptInterface = new JavaScriptInterface(CallService.this);
         webView.addJavascriptInterface(javascriptInterface, "Android");
+        webView.addJavascriptInterface(new ExoPlayerBridge(CallService.this),"ExoPlayer");
+        webView.addJavascriptInterface(new YouTubePlayerBridge(CallService.this),"YouTubePlayer");
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setDomStorageEnabled(true);

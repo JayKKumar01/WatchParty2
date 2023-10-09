@@ -1,33 +1,26 @@
-package com.github.jaykkumar01.watchparty.interfaces;
+package com.github.jaykkumar01.watchparty.javascriptinterfaces;
 
 import android.content.Context;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
-import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.helpers.PeerManagement;
 import com.github.jaykkumar01.watchparty.helpers.PlayerManagement;
 import com.github.jaykkumar01.watchparty.helpers.RecycleViewManagement;
+import com.github.jaykkumar01.watchparty.interfaces.Data;
 import com.github.jaykkumar01.watchparty.models.AudioPlayerModel;
-import com.github.jaykkumar01.watchparty.models.FileModel;
 import com.github.jaykkumar01.watchparty.models.MessageModel;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.update.Info;
-import com.github.jaykkumar01.watchparty.utils.AudioCalculator;
-import com.github.jaykkumar01.watchparty.utils.Base;
 import com.github.jaykkumar01.watchparty.utils.ObjectUtil;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class JavaScriptInterface implements Data{
+public class JavaScriptInterface implements Data {
     Context context;
 
 
@@ -42,7 +35,7 @@ public class JavaScriptInterface implements Data{
 
     @JavascriptInterface
     public void onConnected(String id){
-//        Toast.makeText(context, "myId: "+id, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(context, "myId: "+id, Toast.LENGTH_SHORT).show();
         CallService.listener.onJoinCall(id);
     }
 
@@ -61,7 +54,7 @@ public class JavaScriptInterface implements Data{
         }
 
 
-        RecycleViewManagement.listener.onLoudnessUpdate(id,loudness);
+
 
 
         playerMap.putIfAbsent(id, new AudioPlayerModel(id, millis));
@@ -69,7 +62,7 @@ public class JavaScriptInterface implements Data{
         AudioPlayerModel audioPlayerModel = playerMap.get(id);
 
         executorService.execute(() -> {
-            audioPlayerModel.processFile(bytes,read,millis);
+            audioPlayerModel.processFile(bytes,read,millis,id,loudness);
         });
     }
 
@@ -81,27 +74,6 @@ public class JavaScriptInterface implements Data{
 
         PeerManagement.listener.onReceiveMessage(messageModel);
         RecycleViewManagement.listener.onReceiveMessage(messageModel);
-    }
-    @JavascriptInterface
-    public void handleSeekInfo(String id,long positionMs){
-        PlayerManagement.listener.onSeekInfo(id,positionMs);
-    }
-    @JavascriptInterface
-    public void handlePlayPauseInfo(String id,boolean isPlaying){
-        PlayerManagement.listener.onPlayPauseInfo(id,isPlaying);
-    }
-    @JavascriptInterface
-    public void handlePlaybackStateRequest(String id){
-        PlayerManagement.listener.onPlaybackStateRequest(id);
-    }
-    @JavascriptInterface
-    public void handlePlaybackState(String id,boolean isPlaying, long positionMs){
-        PlayerManagement.listener.onPlaybackStateReceived(id,isPlaying,positionMs);
-    }
-    @JavascriptInterface
-    public void handleActivityStop(String id,byte[] nameBytes, long millis){
-        PlayerManagement.listener.onPlayPauseInfo(id,false);
-        Toast.makeText(context, ObjectUtil.restoreString(nameBytes)+" left the party!", Toast.LENGTH_SHORT).show();
     }
     @JavascriptInterface
     public void handleJoinedPartyAgain(String id,byte[] nameBytes, long millis){

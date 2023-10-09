@@ -15,4 +15,6 @@ public interface YouTubePlayer {
     void clean();
 
     void createPlayer(String link);
+
+    void updatePlaybackState();
 }

@@ -21,6 +21,12 @@ public class YouTubePlayerImpl implements YouTubePlayer {
     }
 
     @Override
+    public void updatePlaybackState() {
+        invoke("updatePlaybackState");
+    }
+
+
+    @Override
     public void play() {
         invoke("playPauseVideo",true);
     }

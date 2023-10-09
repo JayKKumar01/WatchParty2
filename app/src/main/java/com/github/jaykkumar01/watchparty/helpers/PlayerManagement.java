@@ -11,6 +11,7 @@ import android.content.res.Configuration;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
+import android.telecom.Call;
 import android.util.Rational;
 import android.view.Display;
 import android.view.View;
@@ -32,6 +33,7 @@ import androidx.media3.ui.PlayerView;
 import com.github.jaykkumar01.watchparty.PlayerActivity;
 import com.github.jaykkumar01.watchparty.R;
 import com.github.jaykkumar01.watchparty.assets.TrackSelectionDialog;
+import com.github.jaykkumar01.watchparty.enums.PlayerType;
 import com.github.jaykkumar01.watchparty.interfaces.PlayerListener;
 import com.github.jaykkumar01.watchparty.services.CallService;
 import com.github.jaykkumar01.watchparty.utils.PlayerUtil;
@@ -390,7 +392,7 @@ public class PlayerManagement implements View.OnClickListener {
 
             @Override
             public void onPlayerReady() {
-                activity.runOnUiThread(() -> CallService.listener.onSendPlaybackStateRequest());
+                activity.runOnUiThread(() -> CallService.listener.onSendPlaybackStateRequest(0));
 
             }
         });

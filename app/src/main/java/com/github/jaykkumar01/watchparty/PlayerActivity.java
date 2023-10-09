@@ -108,12 +108,6 @@ public class PlayerActivity extends AppCompatActivity {
         void onPip();
 
         void onChatClick();
-
-        void onMessage(String message);
-
-        void onResult(String amp,String db, String fr);
-
-        void onLoudness(float loudness);
     }
 
 
@@ -268,40 +262,6 @@ public class PlayerActivity extends AppCompatActivity {
     private void setUpListener() {
 
         listener = new Listener() {
-
-            @Override
-            public void onLoudness(float loudness) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        userNameTV.setText(loudness+"");
-                    }
-                });
-            }
-
-            @Override
-            public void onResult(String amp,String db, String fr) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        userNameTV.setText(amp);
-                        codeTV.setText(db);
-                        liveFeed.setText(fr);
-                    }
-                });
-            }
-
-            @Override
-            public void onMessage(String message) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String msg = StringEscapeUtils.unescapeJava(message);
-                        Log.d("message",msg);
-                        Toast.makeText(PlayerActivity.this, ""+msg, Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
 
             @Override
             public void onChatClick() {

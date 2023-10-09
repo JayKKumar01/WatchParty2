@@ -18,6 +18,16 @@ public class OnlinePlayerBridge {
     }
 
     @JavascriptInterface
+    public void onPlayerReady(){
+        OnlinePlayerView.listener.onPlayerReady();
+    }
+
+    @JavascriptInterface
+    public void onPlaybackUpdate(boolean isPlaying, long currentPosition){
+        Toast.makeText(context, ""+isPlaying+"\n"+currentPosition, Toast.LENGTH_SHORT).show();
+    }
+
+    @JavascriptInterface
     public void onReady(){
         OnlinePlayerView.listener.onReady();
     }
