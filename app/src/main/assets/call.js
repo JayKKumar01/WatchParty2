@@ -145,6 +145,7 @@ function sendPlaybackState(idBytes, isPlaying, positionMs) {
         id: myId,
         isPlaying: isPlaying,
         positionMs: positionMs
+
     };
 
     // Find the connection with the specified id and send the playback state data

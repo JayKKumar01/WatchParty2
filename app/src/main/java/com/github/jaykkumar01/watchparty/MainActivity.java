@@ -134,4 +134,10 @@ public class MainActivity extends AppCompatActivity {
         isLoading = false;
         btnJoin.setText("Join");
     }
+
+    public void info(View view) {
+//        Intent intent = new Intent(MainActivity.this, DrawingActivity.class);
+        Intent intent = new Intent(MainActivity.this, CameraActivity.class);
+        startActivity(intent);
+    }
 }

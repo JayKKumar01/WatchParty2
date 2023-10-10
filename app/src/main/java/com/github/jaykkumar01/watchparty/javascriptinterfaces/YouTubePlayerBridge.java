@@ -36,6 +36,6 @@ public class YouTubePlayerBridge implements Data {
     }
     @JavascriptInterface
     public void handlePlaybackState(String id,boolean isPlaying, long positionMs){
-        //PlayerManagement.listener.onPlaybackStateReceived(id,isPlaying,positionMs);
+        OnlinePlayerView.listener.onPlaybackStateReceived(id,isPlaying,positionMs);
     }
 }

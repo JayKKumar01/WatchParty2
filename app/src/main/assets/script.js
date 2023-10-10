@@ -39,20 +39,31 @@ function getHeight() {
     return document.body.clientHeight;
 }
 
-function updatePlaybackState() {
+function updatePlaybackState(id) {
     var isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
     var currentPosition = player.getCurrentTime();
-    Android.onPlaybackUpdate(isPlaying, currentPosition);
+    Android.onPlaybackUpdate(id,isPlaying, currentPosition);
 }
 
+function updatePlayback(isPlaying, currentPosition){
+    playPauseVideo(isPlaying);
+    if(isPlaying){
+        currentPosition++;
+    }
+    setCurrentDuration(currentPosition);
+}
 
 function onPlayerReady(event) {
     Android.onPlayerReady();
 }
 
 function onPlayerStateChange(event) {
-    // This event fires whenever the player's state changes.
-
+    // event.data holds the state of the player
+    if (event.data == YT.PlayerState.PLAYING) {
+        Android.onPlayPause(true);
+    } else if(event.data == YT.PlayerState.PAUSED){
+        Android.onPlayPause(false); // Optionally, call this for other states
+    }
 }
 
 
@@ -95,13 +106,16 @@ function destroyPlayer() {
 
 function playPauseVideo(play) {
     if (play) {
-        if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
-            player.playVideo();
-        }
+        player.playVideo();
+        //if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+            //player.playVideo();
+
+        //}
     } else {
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-            player.pauseVideo();
-        }
+        player.pauseVideo();
+//        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+//            player.pauseVideo();
+//        }
     }
 }
 
@@ -136,23 +150,6 @@ function setPlaybackQuality(quality) {
     player.setPlaybackQuality(quality);
 }
 
-function sendVideoQuality() {
-//    Android.sendVideoQuality(localStorage.getItem("yt-player-quality").data)
-//    Android.sendVideoQuality(player.getAvailableQualityLevels())
-}
-
-function enableControlsForDuration(durationInSeconds) {
-    // Assuming you have a player variable defined in your script.js
-    // For example: var player = new YT.Player(...);
-
-    // Enable controls
-    player.setOption('controls', 1);
-
-    // Disable controls after the specified duration
-    setTimeout(function() {
-        player.setOption('controls', 0);
-    }, durationInSeconds * 1000); // Convert duration to milliseconds
-}
 
 function clean() {
     if (player.getPlayerState() === YT.PlayerState.PLAYING) {

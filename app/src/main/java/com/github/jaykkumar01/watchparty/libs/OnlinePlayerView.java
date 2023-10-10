@@ -65,6 +65,10 @@ public class OnlinePlayerView{
         void onPlayerReady();
 
         void onPlaybackStateRequest(String id);
+
+        void onPlayPause(boolean isPlaying);
+
+        void onPlaybackStateReceived(String id, boolean isPlaying, long positionMs);
     }
     public static Listener listener;
 
@@ -102,6 +106,36 @@ public class OnlinePlayerView{
     @OptIn(markerClass = UnstableApi.class)
     private Listener setListener() {
         return new Listener() {
+
+            @Override
+            public void onPlaybackStateReceived(String id, boolean isPlaying, long positionMs) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        youTubePlayer.updatePlayback(isPlaying,positionMs);
+                        //Toast.makeText(context, ""+isPlaying, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+//                youTubePlayer.seekTo(positionMs);
+//                if (isPlaying){
+//                    youTubePlayer.play();
+//                }else{
+//                    youTubePlayer.pause();
+//                }
+
+            }
+
+            @Override
+            public void onPlayPause(boolean isPlaying) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Toast.makeText(context, isPlaying+"", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
             @Override
             public void onReady() {
                 youTubePlayer = new YouTubePlayerImpl(webView);
@@ -118,7 +152,7 @@ public class OnlinePlayerView{
                 if (youTubePlayer == null){
                     return;
                 }
-                youTubePlayer.updatePlaybackState();
+                youTubePlayer.updatePlaybackState(id);
 //                activity.runOnUiThread(new Runnable() {
 //                    @Override
 //                    public void run() {

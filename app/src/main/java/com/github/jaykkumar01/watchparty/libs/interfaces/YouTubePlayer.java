@@ -1,7 +1,5 @@
 package com.github.jaykkumar01.watchparty.libs.interfaces;
 
-import com.github.jaykkumar01.watchparty.libs.PlayerConstants;
-
 public interface YouTubePlayer {
     void play();
     void pause();
@@ -16,5 +14,7 @@ public interface YouTubePlayer {
 
     void createPlayer(String link);
 
-    void updatePlaybackState();
+    void updatePlaybackState(String id);
+
+    void updatePlayback(boolean isPlaying, long positionMs);
 }

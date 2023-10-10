@@ -21,8 +21,13 @@ public class YouTubePlayerImpl implements YouTubePlayer {
     }
 
     @Override
-    public void updatePlaybackState() {
-        invoke("updatePlaybackState");
+    public void updatePlaybackState(String id) {
+        invoke("updatePlaybackState",id);
+    }
+
+    @Override
+    public void updatePlayback(boolean isPlaying, long positionMs) {
+        invoke("updatePlayback",isPlaying,positionMs);
     }
 
 
