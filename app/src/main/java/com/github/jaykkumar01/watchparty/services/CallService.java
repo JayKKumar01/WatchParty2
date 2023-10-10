@@ -139,6 +139,17 @@ public class CallService extends Service implements Data {
 
     private void setupListener() {
         listener = new CallServiceListener() {
+
+            @Override
+            public void onSendPlayPauseAndSeekInfo(boolean isPlaying, int currentTime) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callJavaScript("sendPlayPauseAndSeekInfo",userModel.getUserId(), isPlaying,currentTime);
+                    }
+                });
+            }
+
             @Override
             public void onJoinCall(String id) {
                 startRecording();

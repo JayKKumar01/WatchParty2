@@ -19,8 +19,8 @@ public class OnlinePlayerBridge {
     }
 
     @JavascriptInterface
-    public void onPlayPause(boolean isPlaying){
-        OnlinePlayerView.listener.onPlayPause(isPlaying);
+    public void onPlayPause(boolean isPlaying, int currentTime){
+        OnlinePlayerView.listener.onPlayPause(isPlaying,currentTime);
     }
 
     @JavascriptInterface

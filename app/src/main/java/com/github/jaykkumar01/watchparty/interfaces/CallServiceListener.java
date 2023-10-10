@@ -21,4 +21,6 @@ public interface CallServiceListener {
     void onActivityStopInfo();
 
     void onSendJoinedPartyAgain();
+
+    void onSendPlayPauseAndSeekInfo(boolean isPlaying, int currentTime);
 }

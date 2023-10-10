@@ -122,6 +122,20 @@ function sendPlayPauseInfo(isPlaying) {
     }
 }
 
+function sendPlayPauseAndSeekInfo(isPlaying, currentTime){
+    var data = {
+            type: 'playPauseAndSeekInfo',
+            id: myId,
+            isPlaying: isPlaying,
+            currentTime: currentTime
+        };
+    for (const connection of connections) {
+            if (connection && connection.open) {
+                connection.send(data);
+            }
+        }
+}
+
 function sendPlaybackStateRequest(index) {
     setPlayerType(index);
     var data = {
@@ -207,6 +221,10 @@ function handleData(data) {
         } else if (playerType === "YouTube Player") {
             YouTubePlayer.handlePlayPauseInfo(data.id, data.isPlaying);
         }
+    }
+    else if(data.type === 'playPauseAndSeekInfo'){
+        YouTubePlayer.playPauseAndSeekInfo(data.id,data.isPlaying,data.currentTime);
+
     }
 else if (data.type === 'playbackStateRequest') {
 if(data.playerType === playerType){

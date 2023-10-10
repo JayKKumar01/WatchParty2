@@ -57,14 +57,27 @@ function onPlayerReady(event) {
     Android.onPlayerReady();
 }
 
+var pauseTimeout;
+
 function onPlayerStateChange(event) {
+    // Clear any previous pauseTimeout to prevent multiple pause events
+    clearTimeout(pauseTimeout);
+
     // event.data holds the state of the player
     if (event.data == YT.PlayerState.PLAYING) {
-        Android.onPlayPause(true);
-    } else if(event.data == YT.PlayerState.PAUSED){
-        Android.onPlayPause(false); // Optionally, call this for other states
+        Android.onPlayPause(true,player.getCurrentTime());
+    } else {
+        // Pause event will be fired after 1 second delay
+        pauseTimeout = setTimeout(function() {
+            // Check the player state again to confirm it's still paused
+            if (player.getPlayerState() === YT.PlayerState.PAUSED) {
+                Android.onPlayPause(false,player.getCurrentTime());
+            }
+        }, 500);
     }
 }
+
+
 
 
 function updateCurrentDuration() {
