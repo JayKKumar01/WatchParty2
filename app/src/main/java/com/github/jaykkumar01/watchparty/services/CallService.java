@@ -145,7 +145,7 @@ public class CallService extends Service implements Data {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callJavaScript("sendPlayPauseAndSeekInfo",userModel.getUserId(), isPlaying,currentTime);
+                        callJavaScript("sendPlayPauseAndSeekInfo", isPlaying,currentTime);
                     }
                 });
             }

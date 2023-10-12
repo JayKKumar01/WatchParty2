@@ -1,5 +1,6 @@
 var player;
 var interval;
+let shouldTrigger;
 
 function onYouTubeIframeAPIReady() {
     Android.onReady();
@@ -60,6 +61,7 @@ function onPlayerReady(event) {
 var pauseTimeout;
 
 function onPlayerStateChange(event) {
+//    Android.log(player.getPlayerState());
     // Clear any previous pauseTimeout to prevent multiple pause events
     clearTimeout(pauseTimeout);
 
@@ -170,7 +172,12 @@ function clean() {
         setTimeout(function() {
             player.playVideo();
         }, 500);
-    }
+    } else if (player.getPlayerState() === YT.PlayerState.PAUSED) {
+                   player.playVideo();
+                   setTimeout(function() {
+                       player.pauseVideo();
+                   }, 500);
+               }
 }
 
 

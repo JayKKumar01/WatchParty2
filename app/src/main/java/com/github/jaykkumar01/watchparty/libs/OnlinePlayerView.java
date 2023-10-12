@@ -29,6 +29,8 @@ public class OnlinePlayerView{
 
     private boolean isFirstSync;
     private boolean isListenerCommand;
+    private boolean shouldTrigger;
+    private int cleanCount;
 
     private void screen(boolean setLandscape) {
         if (setLandscape){
@@ -99,11 +101,18 @@ public class OnlinePlayerView{
         return new Listener() {
             @Override
             public void onPlayPauseAndSeekInfo(boolean isPlaying, int currentTime) {
-                if (isListenerCommand){
-                    isListenerCommand = false;
+                if (youTubePlayer == null){
                     return;
                 }
-                youTubePlayer.updatePlayback(isPlaying,currentTime);
+                isListenerCommand = true;
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Toast.makeText(context, "Received: "+isPlaying + " "+currentTime, Toast.LENGTH_SHORT).show();
+                        youTubePlayer.updatePlayback(isPlaying,currentTime);
+                    }
+                });
+
             }
 
             @Override
@@ -115,6 +124,7 @@ public class OnlinePlayerView{
                     @Override
                     public void run() {
                         isFirstSync = false;
+                        isListenerCommand = true;
                         youTubePlayer.updatePlayback(isPlaying,positionMs);
                         //Toast.makeText(context, ""+isPlaying, Toast.LENGTH_SHORT).show();
                     }
@@ -131,10 +141,25 @@ public class OnlinePlayerView{
 
             @Override
             public void onPlayPause(boolean isPlaying, int currentTime) {
+
+                if (--cleanCount > 0){
+                    return;
+                }
+
+
+                if (!shouldTrigger){
+                    shouldTrigger = true;
+                    return;
+                }
+                if (isListenerCommand){
+                    isListenerCommand = false;
+                    return;
+                }
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        isListenerCommand = true;
+
+                        //Toast.makeText(context, "Sent: "+isPlaying + " "+currentTime, Toast.LENGTH_SHORT).show();
                         CallService.listener.onSendPlayPauseAndSeekInfo(isPlaying,currentTime);
                         //Toast.makeText(context, isPlaying+" "+currentTime, Toast.LENGTH_SHORT).show();
                     }
@@ -150,7 +175,16 @@ public class OnlinePlayerView{
             @Override
             public void onPlayerReady() {
                 isFirstSync = true;
-                CallService.listener.onSendPlaybackStateRequest(1);
+                shouldTrigger = false;
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        CallService.listener.onSendPlaybackStateRequest(1);
+                        Toast.makeText(context, "onPlayerReady", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+
             }
 
             @Override
@@ -258,7 +292,7 @@ public class OnlinePlayerView{
             playerLayout.removeView(screen);
             viewUtil.initWebView(webView,playerLayout);
             webView.setVisibility(View.VISIBLE);
-
+            cleanCount = 2;
             youTubePlayer.clean();
 
         }
